@@ -1,0 +1,106 @@
+# Sends ntfy.sh push notifications when incidents open or close.
+#
+# Trigger: workflow_run on "Uptime CI" (fires after every 5-min check) +
+#          schedule fallback every 15 min in case workflow_run is delayed.
+#
+# Deduplication: we add a label to each notified issue so the same event
+# is never sent twice. Labels used: ntfy-sent-open, ntfy-sent-closed.
+#
+# Injection-safety: issue titles come from `gh issue list --json` piped
+# through jq. They are assigned to local shell variables and passed to
+# curl via environment — they are NEVER interpolated from ${{ expressions }}
+# into the run: script (public repo, script injection vector).
+#
+# Secret: NTFY_TOPIC must be set as a repository secret. It is only ever
+# referenced as the environment variable $NTFY_TOPIC — never printed to
+# logs or embedded in the workflow file.
+name: Notify on Incident
+
+on:
+  workflow_run:
+    workflows: ["Uptime CI"]
+    types:
+      - completed
+  schedule:
+    - cron: "*/15 * * * *"
+
+permissions:
+  issues: write   # needed to add dedup labels via gh issue edit
+
+jobs:
+  notify:
+    name: Send ntfy notifications
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+      REPO: Webu-PRO/status
+
+    steps:
+      # Ensure our dedup labels exist before trying to assign them
+      - name: Create dedup labels if missing
+        run: |
+          gh label create "ntfy-sent-open"   --repo "$REPO" \
+            --color "ededed" --description "ntfy open notification sent"   \
+            2>/dev/null || true
+          gh label create "ntfy-sent-closed" --repo "$REPO" \
+            --color "bfd4f2" --description "ntfy closed notification sent" \
+            2>/dev/null || true
+
+      # ── Notify new (opened) incidents ──────────────────────────────────
+      - name: Notify new incidents
+        run: |
+          # Get open issues labelled 'status' that haven't been notified yet.
+          # contains(…) check is on the parsed label-name array — no toJSON matching.
+          gh issue list \
+            --repo "$REPO" \
+            --label "status" \
+            --state open \
+            --limit 50 \
+            --json number,title,labels \
+            --jq '.[] | select(
+              (.labels | map(.name) | contains(["ntfy-sent-open"]) | not)
+            ) | "\(.number)\t\(.title)"' \
+          > /tmp/new_open.tsv
+
+          while IFS=$'\t' read -r number title; do
+            [ -z "$number" ] && continue
+            # Pass title through env var — never via ${{ }} interpolation
+            ISSUE_TITLE="$title" curl -sf \
+              -H "Title: Webu kiesés" \
+              -H "Priority: high" \
+              -H "Tags: warning,status_page" \
+              -d "Kiesés: ${ISSUE_TITLE}" \
+              "https://ntfy.sh/${NTFY_TOPIC}" || true
+
+            # Add dedup label so this issue is not notified again
+            gh issue edit "$number" --repo "$REPO" --add-label "ntfy-sent-open"
+          done < /tmp/new_open.tsv
+
+      # ── Notify resolved (closed) incidents ─────────────────────────────
+      - name: Notify resolved incidents
+        run: |
+          # Get recently closed issues labelled 'status' without the closed-dedup label.
+          # --limit 10 covers all incidents that could close in one uptime cycle.
+          gh issue list \
+            --repo "$REPO" \
+            --label "status" \
+            --state closed \
+            --limit 10 \
+            --json number,title,labels \
+            --jq '.[] | select(
+              (.labels | map(.name) | contains(["ntfy-sent-closed"]) | not)
+            ) | "\(.number)\t\(.title)"' \
+          > /tmp/new_closed.tsv
+
+          while IFS=$'\t' read -r number title; do
+            [ -z "$number" ] && continue
+            ISSUE_TITLE="$title" curl -sf \
+              -H "Title: Webu kiesés megoldva" \
+              -H "Priority: default" \
+              -H "Tags: white_check_mark,status_page" \
+              -d "Megoldva: ${ISSUE_TITLE}" \
+              "https://ntfy.sh/${NTFY_TOPIC}" || true
+
+            gh issue edit "$number" --repo "$REPO" --add-label "ntfy-sent-closed"
+          done < /tmp/new_closed.tsv

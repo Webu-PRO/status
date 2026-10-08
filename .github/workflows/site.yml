@@ -14,15 +14,13 @@
 # * More by Anand Chowdhary: https://anandchowdhary.com
 
 
+# DISABLED: Upptime's built-in Sapper static site generator is not used.
+# We serve our own custom frontend from docs/ via .github/workflows/pages.yml.
+# Keeping workflow_dispatch so it can be re-enabled manually if ever needed.
 name: Static Site CI
 on:
-  push:
-    paths:
-      - "assets/**"
-  schedule:
-    - cron: "0 1 * * *"
-  repository_dispatch:
-    types: [static_site]
+  # push: paths: ["assets/**"]  — disabled; we have no assets/ dir in our config
+  # schedule: cron "0 1 * * *"  — disabled; would deploy a duplicate unused site
   workflow_dispatch:
 concurrency:
   group: ${{ github.repository }}-${{ github.head_ref || github.ref_name }}-upptime

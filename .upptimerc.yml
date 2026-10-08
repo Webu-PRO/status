@@ -1,31 +1,192 @@
-# Change these first
-owner: upptime # Your GitHub organization or username, where this repository lives
-repo: upptime # The name of this repository
+owner: Webu-PRO
+repo: status
+assignees:
+  - NagyVikt
 
 sites:
-  - name: Google
-    url: https://www.google.com
-  - name: Wikipedia
-    url: https://en.wikipedia.org
-  - name: Hacker News
-    url: https://news.ycombinator.com
-  - name: Secret Site
-    url: $SECRET_SITE
+  # ── Webu ──────────────────────────────────────────────────────────────────
+  - name: Webu főoldal
+    url: https://webu.hu
+    slug: webu-fooldal
+    expectedStatusCodes:
+      - 200
+      - 503           # karbantartás banner van fent, ez elvárt 503
+
+  - name: Webu API
+    url: https://webu.hu/api
+    slug: webu-api
+    expectedStatusCodes:
+      - 200
+
+  - name: Webu Admin
+    url: https://admin.webu.hu
+    slug: webu-admin
+    expectedStatusCodes:
+      - 200
+      - 301
+      - 302
+
+  - name: Webu CMR
+    url: https://cmr.webu.hu
+    slug: webu-cmr
+    expectedStatusCodes:
+      - 401
+
+  - name: Webu SEO
+    url: https://seo.webu.hu
+    slug: webu-seo
+    expectedStatusCodes:
+      - 401
+
+  # ── Kollár Ortopédia ──────────────────────────────────────────────────────
+  - name: Kollár főoldal
+    url: https://kollarrobert.sk
+    slug: kollar-fooldal
+    expectedStatusCodes:
+      - 200
+
+  - name: Kollár foglalás
+    url: https://rezervacia.kollarrobert.sk/readyz
+    slug: kollar-rezervacia
+    expectedStatusCodes:
+      - 200
+
+  - name: Kollár Admin
+    url: https://admin.kollarrobert.sk
+    slug: kollar-admin
+    expectedStatusCodes:
+      - 200
+      - 301
+      - 302
+
+  # ── Koronakert ────────────────────────────────────────────────────────────
+  - name: Koronakert Admin
+    url: https://admin.koronakert.eu
+    slug: koronakert-admin
+    expectedStatusCodes:
+      - 200
+      - 301
+      - 302
+
+  - name: Koronakert Medusa
+    url: https://medusa.koronakert.hu
+    slug: koronakert-medusa
+    expectedStatusCodes:
+      - 200
+
+  - name: Koronakert Keresés
+    url: https://search.koronakert.hu/health
+    slug: koronakert-search
+    expectedStatusCodes:
+      - 200
+
+  - name: Koronakert Képek
+    url: https://img.koronakert.hu
+    slug: koronakert-img
+    expectedStatusCodes:
+      - 200
+
+  # ── Lifted ────────────────────────────────────────────────────────────────
+  - name: Lifted Admin
+    url: https://admin.lifted.sk
+    slug: lifted-admin
+    expectedStatusCodes:
+      - 200
+      - 301
+      - 302
+
+  - name: Lifted Képek
+    url: https://img.lifted.sk
+    slug: lifted-img
+    expectedStatusCodes:
+      - 200
+
+  # ── Egyedi ügyfelek ───────────────────────────────────────────────────────
+  - name: Teherguminet Admin
+    url: https://admin.teherguminet.hu
+    slug: teherguminet-admin
+    expectedStatusCodes:
+      - 200
+      - 301
+      - 302
+
+  - name: Compastor Admin
+    url: https://admin.compastor.hu
+    slug: compastor-admin
+    expectedStatusCodes:
+      - 200
+      - 301
+      - 302
+
+  - name: Marva Home Admin
+    url: https://admin.marvahome.com
+    slug: marvahome-admin
+    expectedStatusCodes:
+      - 200
+      - 301
+      - 302
+
+  - name: Modulix
+    url: https://modulix.sk
+    slug: modulix
+    expectedStatusCodes:
+      - 200
+      - 301
+      - 302
+      - 307
+
+  - name: Ajtófelújító
+    url: https://ajtofelujito.hu
+    slug: ajtofelujito
+    expectedStatusCodes:
+      - 200
+
+  - name: Recodee
+    url: https://recodee.com
+    slug: recodee
+    expectedStatusCodes:
+      - 200
+
+  - name: Volaria
+    url: https://volariax.com
+    slug: volaria
+    expectedStatusCodes:
+      - 200
+      - 301
+      - 302
+      - 303
+
+  # ── Teszt környezetek ─────────────────────────────────────────────────────
+  - name: Trusbau teszt
+    url: https://trusbau.webuteszt.hu
+    slug: teszt-trusbau
+    expectedStatusCodes:
+      - 200
+
+  - name: Mite teszt
+    url: https://mite.webuteszt.hu
+    slug: teszt-mite
+    expectedStatusCodes:
+      - 200
+
+  - name: Lebenyse teszt
+    url: https://lebenyse.webuteszt.hu
+    slug: teszt-lebenyse
+    expectedStatusCodes:
+      - 200
+
+  - name: Gotto Admin teszt
+    url: https://admin.gotto.webuteszt.hu
+    slug: teszt-gotto-admin
+    expectedStatusCodes:
+      - 200
+      - 301
+      - 302
 
 status-website:
-  # Add your custom domain name, or remove the `cname` line if you don't have a domain
-  # Uncomment the `baseUrl` line if you don't have a custom domain and add your repo name there
-  cname: demo.upptime.js.org
-  # baseUrl: /your-repo-name
-  logoUrl: https://raw.githubusercontent.com/upptime/upptime.js.org/master/static/img/icon.svg
-  name: Upptime
-  introTitle: "**Upptime** is the open-source uptime monitor and status page, powered entirely by GitHub."
-  introMessage: This is a sample status page which uses **real-time** data from our [GitHub repository](https://github.com/upptime/upptime). No server required — just GitHub Actions, Issues, and Pages. [**Get your own for free**](https://github.com/upptime/upptime)
-  navbar:
-    - title: Status
-      href: /
-    - title: GitHub
-      href: https://github.com/$OWNER/$REPO
-
-# Upptime also supports notifications, assigning issues, and more
-# See https://upptime.js.org/docs/configuration
+  # Custom domain for GitHub Pages
+  cname: status.webu.hu
+  name: Webu Státusz
+  # NOTE: Upptime's built-in Sapper/Jekyll site generator (site.yml) is disabled.
+  # We serve our own Polymarket-style frontend from docs/ via .github/workflows/pages.yml.
+  # The CNAME above is still used by Upptime to write docs/CNAME during setup.

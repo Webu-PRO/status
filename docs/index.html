@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Webu Státusz</title>
+  <meta name="description" content="Webu infrastruktúra és ügyféloldalak valós idejű státusza">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────────────── -->
+<header class="hdr">
+  <div class="hdr-inner">
+    <a href="/" class="logo" aria-label="Webu – kezdőlap">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="#2563EB"/>
+        <path d="M6 10L10.5 22L16 13L21.5 22L26 10"
+              stroke="white" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Webu</span>
+    </a>
+    <nav class="hnav" aria-label="Státusz navigáció">
+      <a class="ghost-btn"
+         href="https://github.com/Webu-PRO/status/issues/new"
+         target="_blank" rel="noopener noreferrer">
+        Hiba bejelentése
+      </a>
+      <div class="drop" id="dd">
+        <button class="dark-btn" id="ddbtn"
+                aria-haspopup="true" aria-expanded="false"
+                aria-controls="ddmenu">
+          Értesítések
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M3 5l4 4 4-4" stroke="currentColor"
+                  stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <div class="drop-menu" id="ddmenu" role="menu" hidden>
+          <a class="drop-item" role="menuitem"
+             href="https://github.com/Webu-PRO/status/issues.atom"
+             target="_blank" rel="noopener noreferrer">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+              <circle cx="3.5" cy="11.5" r="1.5" fill="currentColor"/>
+              <path d="M2 7a7 7 0 0 1 7 7"   stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+              <path d="M2 2a12 12 0 0 1 12 12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+            RSS / Atom hírfolyam
+          </a>
+          <a class="drop-item" role="menuitem"
+             href="https://github.com/Webu-PRO/status/issues?q=label%3Astatus"
+             target="_blank" rel="noopener noreferrer">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+              <circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.4"/>
+              <path d="M7.5 5v4m0-6v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Esemény előzmények
+          </a>
+        </div>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- ── Main ───────────────────────────────────────────────────────────── -->
+<main class="main" id="app">
+  <!-- Banners and card are injected by app.js -->
+  <p style="text-align:center;padding:60px 0;color:var(--fg-muted)" id="loading-msg" aria-live="polite">
+    Státuszadatok betöltése…
+  </p>
+</main>
+
+<script src="app.js" defer></script>
+
+</body>
+</html>
