@@ -162,26 +162,6 @@
     "dailyMinutesDown": {}
   },
   {
-    "name": "Koronakert Medusa",
-    "url": "https://medusa.koronakert.hu",
-    "icon": "https://icons.duckduckgo.com/ip3/medusa.koronakert.hu.ico",
-    "slug": "koronakert-medusa",
-    "status": "down",
-    "uptime": "9.65%",
-    "uptimeDay": "9.65%",
-    "uptimeWeek": "9.65%",
-    "uptimeMonth": "9.65%",
-    "uptimeYear": "9.65%",
-    "time": 1976,
-    "timeDay": 1976,
-    "timeWeek": 1976,
-    "timeMonth": 1976,
-    "timeYear": 1976,
-    "dailyMinutesDown": {
-      "2026-10-08": 3
-    }
-  },
-  {
     "name": "Koronakert Keresés",
     "url": "https://search.koronakert.hu/health",
     "icon": "https://icons.duckduckgo.com/ip3/search.koronakert.hu.ico",
@@ -366,19 +346,19 @@
     "url": "https://volariax.com",
     "icon": "https://icons.duckduckgo.com/ip3/volariax.com.ico",
     "slug": "volaria",
-    "status": "down",
-    "uptime": "68.83%",
-    "uptimeDay": "68.83%",
-    "uptimeWeek": "68.83%",
-    "uptimeMonth": "68.83%",
-    "uptimeYear": "68.83%",
-    "time": 30627,
-    "timeDay": 30627,
-    "timeWeek": 30627,
-    "timeMonth": 30627,
-    "timeYear": 30627,
+    "status": "up",
+    "uptime": "5.92%",
+    "uptimeDay": "5.92%",
+    "uptimeWeek": "5.92%",
+    "uptimeMonth": "5.92%",
+    "uptimeYear": "5.92%",
+    "time": 16057,
+    "timeDay": 16057,
+    "timeWeek": 16057,
+    "timeMonth": 16057,
+    "timeYear": 16057,
     "dailyMinutesDown": {
-      "2026-10-08": 1
+      "2026-10-08": 33
     }
   },
   {
