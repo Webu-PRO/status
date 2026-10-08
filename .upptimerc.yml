@@ -68,7 +68,6 @@ sites:
       - 301
       - 302
 
-
   - name: Koronakert Keresés
     url: https://search.koronakert.hu/health
     slug: koronakert-search
