@@ -6,13 +6,20 @@ const RAW    = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`;
 const API    = `https://api.github.com/repos/${OWNER}/${REPO}`;
 const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 
+// Upptime only records days that had downtime in dailyMinutesDown.
+// Days on-or-after this date with no entry are UP (0 min down), not "no data".
+// Days strictly before this date are pre-monitoring — shown as grey "no data".
+const MONITORING_SINCE = '2026-10-08';
+
 // ── Site / group definition ───────────────────────────────────────────────────
 // maintenance:true → site intentionally returns 503; shown as "Karbantartás" badge.
 // Slugs must match .upptimerc.yml exactly.
+// Groups with 1 site render as a plain top-level row (no panel, no expand/collapse).
+// Groups with ≥2 sites render as a collapsible inner panel.
 const GROUPS = [
   { id: 'webu', name: 'Webu', sites: [
     { slug: 'webu-fooldal',  name: 'Webu főoldal',  maintenance: true },
-    { slug: 'webu-api',      name: 'Webu API' },
+    { slug: 'webu-api',      name: 'API' },
     { slug: 'webu-admin',    name: 'Admin' },
     { slug: 'webu-cmr',      name: 'CMR' },
     { slug: 'webu-seo',      name: 'SEO eszköz' },
@@ -23,21 +30,35 @@ const GROUPS = [
     { slug: 'kollar-admin',      name: 'Admin' },
   ]},
   { id: 'koronakert', name: 'Koronakert', sites: [
-    { slug: 'koronakert-admin',  name: 'Admin' },
-    { slug: 'koronakert-search', name: 'Keresés' },
-    { slug: 'koronakert-img',    name: 'Képek' },
+    { slug: 'koronakert-webshop', name: 'Webshop' },
+    { slug: 'koronakert-admin',   name: 'Admin' },
+    { slug: 'koronakert-search',  name: 'Keresés' },
+    { slug: 'koronakert-img',     name: 'Képek' },
   ]},
   { id: 'lifted', name: 'Lifted', sites: [
-    { slug: 'lifted-admin', name: 'Admin' },
-    { slug: 'lifted-img',   name: 'Képek' },
+    { slug: 'lifted-webshop', name: 'Webshop' },
+    { slug: 'lifted-admin',   name: 'Admin' },
+    { slug: 'lifted-img',     name: 'Képek' },
   ]},
-  { id: 'tg',  name: 'Teherguminet',     sites: [{ slug: 'teherguminet-admin', name: 'Admin' }] },
-  { id: 'cp',  name: 'Compastor',        sites: [{ slug: 'compastor-admin',    name: 'Admin' }] },
-  { id: 'mh',  name: 'Marva Home',       sites: [{ slug: 'marvahome-admin',    name: 'Admin' }] },
-  { id: 'mx',  name: 'Modulix',          sites: [{ slug: 'modulix',            name: 'Modulix' }] },
-  { id: 'aj',  name: 'Ajtófelújító',     sites: [{ slug: 'ajtofelujito',       name: 'Ajtófelújító.hu' }] },
-  { id: 'rc',  name: 'Recodee',          sites: [{ slug: 'recodee',            name: 'Recodee' }] },
-  { id: 'vl',  name: 'Volaria',          sites: [{ slug: 'volaria',            name: 'Volaria' }] },
+  { id: 'tg', name: 'Teherguminet', sites: [
+    { slug: 'teherguminet-webshop', name: 'Webshop' },
+    { slug: 'teherguminet-admin',   name: 'Admin' },
+  ]},
+  { id: 'cp', name: 'Compastor', sites: [
+    { slug: 'compastor-webshop', name: 'Webshop' },
+    { slug: 'compastor-admin',   name: 'Admin' },
+  ]},
+  { id: 'mh', name: 'Marva Home', sites: [
+    { slug: 'marvahome-webshop', name: 'Webshop' },
+    { slug: 'marvahome-admin',   name: 'Admin' },
+  ]},
+  { id: 'mx',  name: 'Modulix',          sites: [{ slug: 'modulix',              name: 'Modulix' }] },
+  { id: 'aj',  name: 'Ajtófelújító',     sites: [{ slug: 'ajtofelujito',         name: 'Ajtófelújító.hu' }] },
+  { id: 'rc',  name: 'Recodee',          sites: [{ slug: 'recodee',              name: 'Recodee' }] },
+  { id: 'vl',  name: 'Volaria',          sites: [{ slug: 'volaria',              name: 'Volaria' }] },
+  { id: 'mu',  name: 'Munchi',           sites: [{ slug: 'munchi-webshop',        name: 'Munchi' }] },
+  { id: 'tv',  name: 'Te vagy a Puzzle', sites: [{ slug: 'tevagyapuzzle-webshop', name: 'Te vagy a Puzzle' }] },
+  { id: 'pt',  name: 'Portas',           sites: [{ slug: 'portas-webshop',        name: 'Portas' }] },
   { id: 'teszt', name: 'Teszt környezetek', sites: [
     { slug: 'teszt-trusbau',     name: 'Trusbau' },
     { slug: 'teszt-mite',        name: 'Mite' },
@@ -56,6 +77,74 @@ function esc(s) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+// ── Demo mode ─────────────────────────────────────────────────────────────────
+// ?demo=1 in the URL activates a local fixture instead of fetching from GitHub.
+// Useful for verifying layout changes without a live network.
+// Local development only, so nobody can show fake outages on the public page with ?demo=1.
+const DEMO = typeof location !== 'undefined'
+  && ['localhost', '127.0.0.1'].includes(location.hostname)
+  && new URLSearchParams(location.search).has('demo');
+
+function _demoSummary() {
+  // Build a fake summary that exercises the bar coloring, downtime stubs, and overall state.
+  // MONITORING_SINCE is 2026-10-08 — we pretend we've been running for 60 days so bars fill.
+  const demoStart = '2026-08-09'; // 60 days before 2026-10-08 so most bars show
+  const base = (slug, extra = {}) => ({
+    name: slug, url: '#', icon: '', slug,
+    status: 'up', uptime: '99.95%', uptimeYear: '99.95%',
+    time: 500, dailyMinutesDown: {}, ...extra,
+  });
+  // Site with a few downtime days
+  const dmd = { '2026-09-15': 8, '2026-09-22': 75, '2026-09-30': 180 };
+  return [
+    base('webu-fooldal',  { uptimeYear: '100%',  dailyMinutesDown: {} }),
+    base('webu-api',       { uptimeYear: '100%',  dailyMinutesDown: {} }),
+    base('webu-admin',     { uptimeYear: '99.98%',dailyMinutesDown: { '2026-09-10': 3 } }),
+    base('webu-cmr',       { uptimeYear: '100%',  dailyMinutesDown: {} }),
+    base('webu-seo',       { uptimeYear: '100%',  dailyMinutesDown: {} }),
+    base('kollar-fooldal', { uptimeYear: '100%',  dailyMinutesDown: {} }),
+    base('kollar-rezervacia'),
+    base('kollar-admin',   { uptimeYear: '100%',  dailyMinutesDown: {} }),
+    base('koronakert-webshop'),
+    base('koronakert-admin',   { uptimeYear: '99.90%', dailyMinutesDown: dmd }),
+    base('koronakert-search',  { uptimeYear: '100%', dailyMinutesDown: {} }),
+    base('koronakert-img',     { uptimeYear: '100%', dailyMinutesDown: {} }),
+    base('lifted-webshop', { uptimeYear: '100%', dailyMinutesDown: {} }),
+    base('lifted-admin',   { status: 'down', uptimeYear: '99.50%', dailyMinutesDown: { '2026-10-07': 240 } }),
+    base('lifted-img',     { uptimeYear: '100%', dailyMinutesDown: {} }),
+    base('teherguminet-webshop'),
+    base('teherguminet-admin', { uptimeYear: '100%', dailyMinutesDown: {} }),
+    base('compastor-webshop'),
+    base('compastor-admin', { uptimeYear: '100%', dailyMinutesDown: {} }),
+    base('marvahome-webshop'),
+    base('marvahome-admin', { uptimeYear: '100%', dailyMinutesDown: {} }),
+    base('modulix',           { uptimeYear: '99.99%', dailyMinutesDown: { '2026-09-05': 1 } }),
+    base('ajtofelujito',      { uptimeYear: '100%', dailyMinutesDown: {} }),
+    base('recodee',           { uptimeYear: '100%', dailyMinutesDown: {} }),
+    base('volaria',           { uptimeYear: '100%', dailyMinutesDown: {} }),
+    base('munchi-webshop',    { uptimeYear: '100%', dailyMinutesDown: {} }),
+    base('tevagyapuzzle-webshop'),
+    base('portas-webshop'),
+    base('teszt-trusbau'),
+    base('teszt-mite'),
+    base('teszt-lebenyse'),
+    base('teszt-gotto-admin'),
+  ].map(s => {
+    // Backfill dailyMinutesDown to cover demoStart so bars are not all grey
+    // (they are already correct via MONITORING_SINCE logic; no change needed to dailyMinutesDown)
+    return s;
+  });
+}
+function _demoIncidents() {
+  // One active incident for lifted-admin
+  return [{
+    number: 42,
+    title: 'Lifted Admin – kapcsolódási hiba',
+    url: 'https://github.com/Webu-PRO/status/issues/42',
+    labels: ['status', 'lifted-admin'],
+  }];
 }
 
 // ── Session cache helpers ─────────────────────────────────────────────────────
@@ -80,6 +169,7 @@ function cacheSet(key, data) {
 // dailyMinutesDown is a map of ISO-date → downtime minutes (Upptime-generated).
 // Returns [] when the file is missing or empty (newly provisioned repo).
 async function fetchSummary() {
+  if (DEMO) return _demoSummary();
   const cached = cacheGet('summary');
   if (cached) return cached;
   const res = await fetch(`${RAW}/history/summary.json`);
@@ -95,6 +185,7 @@ async function fetchSummary() {
 // with "status" and the site slug, so labels map an incident to its component.
 // Cached 2 min — 60 unauthenticated req/h/IP; page visits stay well under that.
 async function fetchIncidents() {
+  if (DEMO) return _demoIncidents();
   const cached = cacheGet('incidents');
   if (cached) return cached;
   try {
@@ -121,7 +212,7 @@ function last90() {
   const days = [];
   for (let i = 89; i >= 0; i--) {
     const d = new Date();
-    d.setDate(d.getDate() - i);
+    d.setUTCDate(d.getUTCDate() - i);
     days.push(d.toISOString().slice(0, 10));
   }
   return days;
@@ -129,10 +220,9 @@ function last90() {
 const DAYS90    = last90();
 const NARROW    = window.matchMedia('(max-width: 480px)').matches;
 const BAR_DAYS  = NARROW ? DAYS90.slice(-30) : DAYS90;
-const BAR_LABEL = NARROW ? '30 napja' : '90 napja';
 
 function fmtMin(m) {
-  if (!m) return 'Teljes rendelkezésre állás';
+  if (!m) return 'Nincs kiesés';
   const h = Math.floor(m / 60), mn = m % 60;
   if (h && mn) return `${h}ó ${mn}p kiesés`;
   if (h) return `${h}ó kiesés`;
@@ -141,58 +231,87 @@ function fmtMin(m) {
 function fmtDateHU(iso) {
   return new Date(iso + 'T00:00:00').toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' });
 }
+function fmtPct(v) {
+  const r = v.toFixed(2);
+  return (r === '100.00' ? '100' : r) + '% uptime';
+}
+function fmtUptime(d) {
+  return fmtPct(parseFloat(d?.uptimeYear || d?.uptime || '100'));
+}
 
 // ── Icon SVG helpers ──────────────────────────────────────────────────────────
-function iconCheck(big) {
-  const s = big ? 32 : 20, sw = big ? 2.5 : 2;
+// size: pixel size (16, 24, etc.)
+function iconCheck(size) {
+  const s = size || 16, sw = s <= 16 ? 1.8 : s <= 20 ? 2 : 2.5;
+  const r = s / 2;
   return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" fill="none" aria-hidden="true">
-    <circle cx="${s/2}" cy="${s/2}" r="${s/2-1}" fill="#2563EB"/>
+    <circle cx="${r}" cy="${r}" r="${r}" fill="#2563EB"/>
     <path d="M${s*.25} ${s*.52}l${s*.22} ${s*.22}l${s*.35} -${s*.35}"
           stroke="white" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`;
 }
-function iconX(big) {
-  const s = big ? 32 : 20, p = big ? 9 : 6, sw = big ? 2.5 : 2;
+function iconX(size) {
+  const s = size || 16, p = s * .28, sw = s <= 16 ? 1.8 : s <= 20 ? 2 : 2.5;
+  const r = s / 2;
   return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" fill="none" aria-hidden="true">
-    <circle cx="${s/2}" cy="${s/2}" r="${s/2-1}" fill="#EF4444"/>
+    <circle cx="${r}" cy="${r}" r="${r}" fill="#EF4444"/>
     <path d="M${p} ${p}l${s-2*p} ${s-2*p}M${s-p} ${p}l${-(s-2*p)} ${s-2*p}"
           stroke="white" stroke-width="${sw}" stroke-linecap="round"/>
   </svg>`;
 }
-function iconWarn(big) {
-  const s = big ? 32 : 20, sw = big ? 2.5 : 2;
+function iconWarn(size) {
+  const s = size || 16, sw = s <= 16 ? 1.8 : s <= 20 ? 2 : 2.5;
+  const r = s / 2;
   return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" fill="none" aria-hidden="true">
-    <circle cx="${s/2}" cy="${s/2}" r="${s/2-1}" fill="#D97706"/>
-    <path d="M${s/2} ${s*.28}v${s*.32}M${s/2} ${s*.7}v${s*.1}"
+    <circle cx="${r}" cy="${r}" r="${r}" fill="#F59E0B"/>
+    <path d="M${r} ${s*.28}v${s*.32}M${r} ${s*.7}v${s*.1}"
           stroke="white" stroke-width="${sw}" stroke-linecap="round"/>
   </svg>`;
 }
-function statusIcon(state, big = false) {
-  if (state === 'down' || state === 'degraded') return iconX(big);
-  if (state === 'maintenance') return iconWarn(big);
-  return iconCheck(big);
+function statusIcon(state, size) {
+  if (state === 'down' || state === 'degraded') return iconX(size);
+  if (state === 'maintenance') return iconWarn(size);
+  return iconCheck(size);
 }
 
-// ── Bar class by downtime minutes ─────────────────────────────────────────────
-function barCls(m) {
-  if (m == null) return 'bar-nodata';
-  if (m === 0)   return 'bar-up';
-  if (m < 20)    return 'bar-minor';
-  if (m < 240)   return 'bar-major';
-  return 'bar-down';
+// ── Bar stub (coloured bottom portion for downtime days) ──────────────────────
+function renderBarStub(m) {
+  if (!m) return '';
+  const color = m < 5 ? '#facc15' : m < 60 ? '#f97316' : '#ef4444';
+  const BAR_H = 34; // must match CSS .bars height
+  const h = Math.max(6, Math.round(BAR_H * Math.min(m / 240, 1)));
+  return `<div class="bar-stub" style="height:${h}px;background:${color}"></div>`;
 }
 
-// ── Uptime bars (rendered synchronously from summary.json dailyMinutesDown) ──
+// ── Uptime bars ────────────────────────────────────────────────────────────────
+// Upptime's dailyMinutesDown only lists days with downtime.
+// A missing entry on/after MONITORING_SINCE means 0 min down (the site was up).
+// Days before MONITORING_SINCE have no data at all → grey.
 function renderBars(dmd) {
+  // Demo mode uses the full 90-day window as the "since" date so all bars are coloured.
+  const sinceDate = DEMO ? DAYS90[0] : MONITORING_SINCE;
   let h = '<div class="bars" role="img" aria-label="Rendelkezésre állás naptár">';
   for (const day of BAR_DAYS) {
-    const m   = (dmd || {})[day] ?? null;
-    // esc() guards the tooltip — fmtDateHU uses toLocaleDateString which is safe
-    // but the combined string goes into a title attr via innerHTML so we escape.
-    const tip = esc(`${fmtDateHU(day)}: ${m != null ? fmtMin(m) : 'nincs adat'}`);
-    h += `<div class="bar ${barCls(m)}" title="${tip}"></div>`;
+    let m = null;
+    if (day >= sinceDate) {
+      // Monitoring was running: missing = up (0 min down), present = downtime
+      m = (dmd || {})[day] ?? 0;
+    }
+    // m === null → before monitoring started, no data
+    // m === 0   → on/after start, 0 minutes down → up (blue)
+    // m >  0   → downtime → blue + coloured stub
+    const isNodata = m === null;
+    const cls = isNodata ? 'bar-nodata' : 'bar-up';
+    const tipText = isNodata ? 'nincs adat' : m === 0 ? 'Nincs kiesés' : fmtMin(m);
+    const tip = esc(`${fmtDateHU(day)}: ${tipText}`);
+    const stub = (!isNodata && m > 0) ? renderBarStub(m) : '';
+    h += `<div class="bar ${cls}" data-tip="${tip}" tabindex="0">${stub}</div>`;
   }
-  h += `</div><div class="axis"><span>${esc(BAR_LABEL)}</span><span>Ma</span></div>`;
+  h += `</div>`;
+  h += `<div class="axis">`;
+  h += `<span>${NARROW ? '&lsaquo; 30 NAPJA' : '&lsaquo; 90 NAPJA'}</span>`;
+  h += `<span>MA</span>`;
+  h += `</div>`;
   return h;
 }
 
@@ -225,15 +344,12 @@ function resolveState(d, cfg) {
 function renderSite(cfg, map) {
   const d     = map[cfg.slug];
   const state = resolveState(d, cfg);
-  const pct   = d
-    ? esc(parseFloat(d.uptimeYear || d.uptime || '100').toFixed(2) + '% uptime')
-    : '—';
+  const pct   = esc(fmtUptime(d));
   const badge = state === 'maintenance'
-    ? ' <span class="maint-badge">Karbantartás</span>'
-    : '';
+    ? ' <span class="maint-badge">Karbantartás</span>' : '';
   return `<div class="site" id="site-${esc(cfg.slug)}">
     <div class="site-hdr">
-      ${statusIcon(state)}
+      <span class="site-icon">${statusIcon(state, 16)}</span>
       <span class="site-name">${esc(cfg.name)}</span>${badge}
       <span class="site-up">${pct}</span>
     </div>
@@ -242,66 +358,105 @@ function renderSite(cfg, map) {
 }
 
 // ── Render a group ────────────────────────────────────────────────────────────
+// Single-site groups → plain top-level row (no panel).
+// Multi-site groups  → collapsible inner panel; state persisted in localStorage.
 function renderGroup(grp, map) {
-  const anyDown = grp.sites.some(s => map[s.slug]?.status === 'down');
-  const anyDeg  = grp.sites.some(s => map[s.slug]?.status === 'degraded');
-  const grpState = anyDown ? 'down' : anyDeg ? 'degraded' : 'up';
+  // ── Single-component: plain row, group name as label ─────────────────────
+  if (grp.sites.length === 1) {
+    const s     = grp.sites[0];
+    const d     = map[s.slug];
+    const state = resolveState(d, s);
+    const pct   = esc(fmtUptime(d));
+    const badge = state === 'maintenance'
+      ? ' <span class="maint-badge">Karbantartás</span>' : '';
+    return `<div class="site" role="listitem" id="site-${esc(s.slug)}">
+      <div class="site-hdr">
+        <span class="site-icon">${statusIcon(state, 16)}</span>
+        <span class="site-name">${esc(grp.name)}</span>${badge}
+        <span class="site-up">${pct}</span>
+      </div>
+      ${renderBars(d?.dailyMinutesDown)}
+    </div>`;
+  }
 
+  // ── Multi-component: collapsible panel ───────────────────────────────────
   const vals = grp.sites
     .map(s => map[s.slug])
     .filter(Boolean)
     .map(d => parseFloat(d.uptimeYear || d.uptime || '100'));
-  const avg = vals.length
-    ? esc(parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2)) + '% uptime')
-    : '';
+  const avgVal = vals.length
+    ? vals.reduce((a, b) => a + b, 0) / vals.length
+    : 100;
+  const avgFmt = esc(fmtPct(avgVal));
+
+  // Read expand state from localStorage (expanded by default)
+  let expanded = true;
+  try {
+    const stored = localStorage.getItem(`grp-${grp.id}`);
+    if (stored === 'false') expanded = false;
+  } catch { /* private window or blocked — default to expanded */ }
 
   const sitesHtml = grp.sites.map(s => renderSite(s, map)).join('');
 
-  return `<div class="group" role="listitem">
-    <button class="grp-hdr" aria-expanded="false" aria-controls="gb-${esc(grp.id)}">
-      ${statusIcon(grpState)}
+  // Expand icon: dark circle with white chevron
+  const chevronIcon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <circle cx="8" cy="8" r="8" fill="#111827"/>
+    <path d="M5 7l3 3 3-3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+
+  return `<div class="group-panel" role="listitem">
+    <button class="grp-hdr" aria-expanded="${expanded}" aria-controls="gb-${esc(grp.id)}">
+      <div class="grp-chevron">${chevronIcon}</div>
       <span class="grp-name">${esc(grp.name)}</span>
       <span class="grp-count">&middot; ${grp.sites.length} komponens</span>
-      <span class="grp-uptime">${avg}</span>
-      <svg class="grp-chev" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-        <path d="M4 6.5l5 5 5-5" stroke="currentColor"
-              stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
+      <span class="grp-spacer"></span>
+      <span class="grp-uptime">${avgFmt}</span>
     </button>
-    <div class="grp-body" id="gb-${esc(grp.id)}" hidden>${sitesHtml}</div>
+    <div class="grp-body" id="gb-${esc(grp.id)}"${expanded ? '' : ' hidden'}>
+      ${sitesHtml}
+    </div>
   </div>`;
 }
 
 // ── Render overall headline ───────────────────────────────────────────────────
-function renderOverall(map) {
-  const allSites  = GROUPS.flatMap(g => g.sites);
-  const hasData   = allSites.some(s => map[s.slug] != null);
+// "Lifted Admin" for a component inside a multi-site client, plain "Volaria" otherwise.
+function labelOf(slug) {
+  const g = GROUPS.find(gr => gr.sites.some(s => s.slug === slug));
+  const s = g?.sites.find(x => x.slug === slug);
+  if (!g || !s) return slug;
+  return g.sites.length > 1 && s.name !== g.name ? `${g.name} ${s.name}` : s.name;
+}
 
-  // Newly provisioned repo: no measurements yet
+function renderOverall(map) {
+  const allSites = GROUPS.flatMap(g => g.sites);
+  const hasData  = allSites.some(s => map[s.slug] != null);
+
   if (!hasData) {
-    return `<div class="overall-inner s-maint">
-      ${iconWarn(true)}
+    return `<div class="overall-inner">
+      <div class="overall-halo halo-warn">${iconWarn(24)}</div>
       <span>Az első mérések folyamatban…</span>
     </div>`;
   }
 
-  const anyDown  = allSites.some(s => map[s.slug]?.status === 'down');
-  const anyDeg   = allSites.some(s => map[s.slug]?.status === 'degraded');
-  const anyMaint = allSites.some(s =>
-    s.maintenance && map[s.slug]?.status === 'up'
-  );
+  // A planned maintenance page never changes the headline; it only shows on its own row.
+  // One or a few components down is a partial outage named in a subline, not a page-wide alarm.
+  const affected = allSites.filter(s => ['down', 'degraded'].includes(map[s.slug]?.status));
+  const halfDown = affected.length >= allSites.length / 2;
 
-  let ost, otxt;
-  if (anyDown)      { ost = 'down';  otxt = 'Részleges vagy teljes kiesés'; }
-  else if (anyDeg)  { ost = 'down';  otxt = 'Részleges kiesés'; }
-  else if (anyMaint){ ost = 'maint'; otxt = 'Karbantartás folyamatban'; }
-  else              { ost = 'up';    otxt = 'Minden rendszer működik'; }
+  let haloClass, icon, otxt;
+  if (halfDown)              { haloClass = 'halo-down'; icon = iconX(24);    otxt = 'Jelentős kiesés'; }
+  else if (affected.length)  { haloClass = 'halo-warn'; icon = iconWarn(24); otxt = 'Részleges kiesés'; }
+  else                       { haloClass = 'halo-up';   icon = iconCheck(24); otxt = 'Minden rendszer működik'; }
 
-  const icon = ost === 'down'  ? iconX(true)
-             : ost === 'maint' ? iconWarn(true)
-             : iconCheck(true);
+  const names = affected.map(s => labelOf(s.slug));
+  const sub = affected.length && !halfDown
+    ? `<div class="overall-sub">${affected.length} komponens érintett: ${names.map(esc).join(', ')}</div>`
+    : '';
 
-  return `<div class="overall-inner s-${ost}">${icon}<span>${esc(otxt)}</span></div>`;
+  return `<div class="overall-inner">
+    <div class="overall-halo ${esc(haloClass)}">${icon}</div>
+    <span>${esc(otxt)}</span>
+  </div>${sub}`;
 }
 
 // ── Render incident banners ───────────────────────────────────────────────────
@@ -313,7 +468,7 @@ function renderBanners(incidents, map) {
     const issueLinks = incidents
       .map(i =>
         `<a class="banner-issue"
-            href="${esc(/^https:\/\//.test(i.url) ? i.url : "#")}"
+            href="${esc(/^https:\/\//.test(i.url) ? i.url : '#')}"
             target="_blank" rel="noopener noreferrer">${esc(i.title)}</a>`
       )
       .join('');
@@ -326,19 +481,7 @@ function renderBanners(incidents, map) {
     </div>`);
   }
 
-  const maintSites = GROUPS.flatMap(g => g.sites).filter(
-    s => s.maintenance && map[s.slug]?.status === 'up'
-  );
-  if (maintSites.length > 0 && incidents.length === 0) {
-    parts.push(`<div class="banner banner-maint" role="status">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-        <circle cx="9" cy="9" r="7.5" stroke="#D97706" stroke-width="1.5" fill="none"/>
-        <path d="M9 5.5v5M9 12v1" stroke="#D97706" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      <div class="banner-text">Karbantartás: ${maintSites.map(s => esc(s.name)).join(', ')}</div>
-    </div>`);
-  }
-
+  // Maintenance gets no page-wide banner; the badge on its own row is enough.
   return parts.join('');
 }
 
@@ -350,6 +493,9 @@ function wireGroups() {
       const body = document.getElementById(btn.getAttribute('aria-controls'));
       btn.setAttribute('aria-expanded', String(!expanded));
       if (body) body.hidden = expanded;
+      // Persist state in localStorage (try/catch for private windows)
+      const id = (btn.getAttribute('aria-controls') || '').replace('gb-', '');
+      try { if (id) localStorage.setItem(`grp-${id}`, String(!expanded)); } catch {}
     });
   });
 }
@@ -373,13 +519,61 @@ function wireDropdown() {
   ddmenu.addEventListener('click', e => e.stopPropagation());
 }
 
+// ── Custom tooltip ────────────────────────────────────────────────────────────
+let _tooltip = null;
+function getTooltip() {
+  if (_tooltip) return _tooltip;
+  _tooltip = document.createElement('div');
+  _tooltip.className = 'tooltip';
+  document.body.appendChild(_tooltip);
+  return _tooltip;
+}
+function positionTooltip(e) {
+  const tip = getTooltip();
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX - r.width / 2;
+  let y = e.clientY - r.height - 10 + window.scrollY;
+  x = Math.max(8, Math.min(x, window.innerWidth - r.width - 8));
+  if (y < window.scrollY + 4) y = e.clientY + 18 + window.scrollY;
+  tip.style.left = x + 'px';
+  tip.style.top  = y + 'px';
+}
+function wireTooltips(container) {
+  container.querySelectorAll('.bar[data-tip]').forEach(bar => {
+    bar.addEventListener('mouseenter', e => {
+      const tip = getTooltip();
+      // data-tip is set via esc() — safe to read as text
+      tip.textContent = bar.getAttribute('data-tip') || '';
+      tip.style.display = 'block';
+      positionTooltip(e);
+    });
+    bar.addEventListener('mousemove', positionTooltip);
+    bar.addEventListener('mouseleave', () => { getTooltip().style.display = 'none'; });
+    // Keyboard / focus support
+    bar.addEventListener('focusin', e => {
+      const tip = getTooltip();
+      tip.textContent = bar.getAttribute('data-tip') || '';
+      tip.style.display = 'block';
+      const rect = bar.getBoundingClientRect();
+      tip.style.left = (rect.left + rect.width / 2 - tip.getBoundingClientRect().width / 2) + 'px';
+      tip.style.top  = (rect.top - tip.getBoundingClientRect().height - 8 + window.scrollY) + 'px';
+    });
+    bar.addEventListener('focusout', () => { getTooltip().style.display = 'none'; });
+  });
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 async function init() {
   const app = document.getElementById('app');
 
-  // Keep the groups the visitor opened across the periodic re-render.
-  const openGroups = new Set(
-    [...document.querySelectorAll('.grp-hdr[aria-expanded="true"]')].map(b => b.getAttribute('aria-controls'))
+  // Keep the groups the visitor opened/closed across the periodic re-render.
+  const expandedGroups = new Set(
+    [...document.querySelectorAll('.grp-hdr[aria-expanded="true"]')]
+      .map(b => b.getAttribute('aria-controls'))
+  );
+  const collapsedGroups = new Set(
+    [...document.querySelectorAll('.grp-hdr[aria-expanded="false"]')]
+      .map(b => b.getAttribute('aria-controls'))
   );
 
   try {
@@ -390,14 +584,14 @@ async function init() {
     const overallHtml = renderOverall(map);
     const groupsHtml  = GROUPS.map(g => renderGroup(g, map)).join('');
 
-    // summary.json's `time` is a response time in ms, not a timestamp, so show when this page last refreshed.
+    // summary.json's `time` is a response time in ms, not a timestamp — show when refreshed.
     const footNote = `Frissítve: ${esc(new Date().toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' }))} &middot; `;
 
     app.innerHTML = `
       ${bannersHtml}
       <div class="card">
         <div class="overall" id="overall">${overallHtml}</div>
-        <div id="groups" role="list">${groupsHtml}</div>
+        <div class="card-content" id="groups" role="list">${groupsHtml}</div>
       </div>
       <p class="foot">
         ${footNote}Ellenőrzés
@@ -407,15 +601,23 @@ async function init() {
       </p>`;
 
     wireGroups();
-    for (const id of openGroups) {
-      const btn = document.querySelector(`.grp-hdr[aria-controls="${id}"]`);
+    wireTooltips(app);
+
+    // Restore previously opened/closed groups (after re-renders)
+    for (const id of expandedGroups) {
+      const btn  = document.querySelector(`.grp-hdr[aria-controls="${id}"]`);
       const body = document.getElementById(id);
       if (btn && body) { btn.setAttribute('aria-expanded', 'true'); body.hidden = false; }
+    }
+    for (const id of collapsedGroups) {
+      const btn  = document.querySelector(`.grp-hdr[aria-controls="${id}"]`);
+      const body = document.getElementById(id);
+      if (btn && body) { btn.setAttribute('aria-expanded', 'false'); body.hidden = true; }
     }
 
   } catch (err) {
     app.innerHTML = `
-      <p style="text-align:center;padding:60px 0;color:var(--fg-muted)">
+      <p style="text-align:center;padding:60px 0;color:#6b7280">
         Nem sikerült betölteni az adatokat.<br>
         <a href="https://github.com/Webu-PRO/status" target="_blank" rel="noopener">
           Státusz megtekintése GitHubon</a>

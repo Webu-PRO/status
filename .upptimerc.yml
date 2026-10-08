@@ -60,6 +60,12 @@ sites:
       - 302
 
   # ── Koronakert ────────────────────────────────────────────────────────────
+  - name: Koronakert Webshop
+    url: https://koronakert.eu
+    slug: koronakert-webshop
+    expectedStatusCodes:
+      - 200
+
   - name: Koronakert Admin
     url: https://admin.koronakert.eu
     slug: koronakert-admin
@@ -81,6 +87,12 @@ sites:
       - 200
 
   # ── Lifted ────────────────────────────────────────────────────────────────
+  - name: Lifted Webshop
+    url: https://lifted.sk
+    slug: lifted-webshop
+    expectedStatusCodes:
+      - 200
+
   - name: Lifted Admin
     url: https://admin.lifted.sk
     slug: lifted-admin
@@ -96,6 +108,12 @@ sites:
       - 200
 
   # ── Egyedi ügyfelek ───────────────────────────────────────────────────────
+  - name: Teherguminet Webshop
+    url: https://teherguminet.hu
+    slug: teherguminet-webshop
+    expectedStatusCodes:
+      - 200
+
   - name: Teherguminet Admin
     url: https://admin.teherguminet.hu
     slug: teherguminet-admin
@@ -104,6 +122,12 @@ sites:
       - 301
       - 302
 
+  - name: Compastor Webshop
+    url: https://compastor.hu
+    slug: compastor-webshop
+    expectedStatusCodes:
+      - 200
+
   - name: Compastor Admin
     url: https://admin.compastor.hu
     slug: compastor-admin
@@ -111,6 +135,12 @@ sites:
       - 200
       - 301
       - 302
+
+  - name: Marva Home Webshop
+    url: https://marvahome.com
+    slug: marvahome-webshop
+    expectedStatusCodes:
+      - 200
 
   - name: Marva Home Admin
     url: https://admin.marvahome.com
@@ -149,6 +179,25 @@ sites:
       - 301
       - 302
       - 303
+
+  # ── Új ügyfél storefrontok ────────────────────────────────────────────────
+  - name: Munchi Webshop
+    url: https://munchi.hu
+    slug: munchi-webshop
+    expectedStatusCodes:
+      - 200
+
+  - name: Te vagy a Puzzle Webshop
+    url: https://tevagyapuzzle.hu
+    slug: tevagyapuzzle-webshop
+    expectedStatusCodes:
+      - 200
+
+  - name: Portas Webshop
+    url: https://portasmosonmagyarovar.hu
+    slug: portas-webshop
+    expectedStatusCodes:
+      - 200
 
   # ── Teszt környezetek ─────────────────────────────────────────────────────
   - name: Trusbau teszt
