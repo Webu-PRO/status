@@ -167,18 +167,18 @@
     "icon": "https://icons.duckduckgo.com/ip3/medusa.koronakert.hu.ico",
     "slug": "koronakert-medusa",
     "status": "down",
-    "uptime": "11.63%",
-    "uptimeDay": "11.63%",
-    "uptimeWeek": "11.63%",
-    "uptimeMonth": "11.63%",
-    "uptimeYear": "11.63%",
+    "uptime": "9.65%",
+    "uptimeDay": "9.65%",
+    "uptimeWeek": "9.65%",
+    "uptimeMonth": "9.65%",
+    "uptimeYear": "9.65%",
     "time": 1976,
     "timeDay": 1976,
     "timeWeek": 1976,
     "timeMonth": 1976,
     "timeYear": 1976,
     "dailyMinutesDown": {
-      "2026-10-08": 2
+      "2026-10-08": 3
     }
   },
   {
@@ -367,18 +367,18 @@
     "icon": "https://icons.duckduckgo.com/ip3/volariax.com.ico",
     "slug": "volaria",
     "status": "down",
-    "uptime": "84.49%",
-    "uptimeDay": "84.49%",
-    "uptimeWeek": "84.49%",
-    "uptimeMonth": "84.49%",
-    "uptimeYear": "84.49%",
+    "uptime": "68.83%",
+    "uptimeDay": "68.83%",
+    "uptimeWeek": "68.83%",
+    "uptimeMonth": "68.83%",
+    "uptimeYear": "68.83%",
     "time": 30627,
     "timeDay": 30627,
     "timeWeek": 30627,
     "timeMonth": 30627,
     "timeYear": 30627,
     "dailyMinutesDown": {
-      "2026-10-08": 0
+      "2026-10-08": 1
     }
   },
   {
