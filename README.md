@@ -7,14 +7,14 @@ Valós idejű státuszoldal a Webu infrastruktúra és ügyféloldalak monitoroz
 
 ## Monitorozott csoportok
 
-| Csoport | Komponensek |
-|---|---|
-| Webu | főoldal (karbantartás), API, admin, CMR, SEO |
-| Kollár Ortopédia | főoldal, foglalási rendszer, admin |
-| Koronakert | admin, Medusa, keresés, képek |
-| Lifted | admin, képek |
-| Teherguminet, Compastor, Marva Home, Modulix, Ajtófelújító, Recodee, Volaria | admin / főoldal |
-| Teszt környezetek | trusbau, mite, lebenyse, gotto-admin |
+| Csoport                                                                      | Komponensek                                  |
+| ---------------------------------------------------------------------------- | -------------------------------------------- |
+| Webu                                                                         | főoldal (karbantartás), API, admin, CMR, SEO |
+| Kollár Ortopédia                                                             | főoldal, foglalási rendszer, admin           |
+| Koronakert                                                                   | admin, Medusa, keresés, képek                |
+| Lifted                                                                       | admin, képek                                 |
+| Teherguminet, Compastor, Marva Home, Modulix, Ajtófelújító, Recodee, Volaria | admin / főoldal                              |
+| Teszt környezetek                                                            | trusbau, mite, lebenyse, gotto-admin         |
 
 ## Értesítések
 
