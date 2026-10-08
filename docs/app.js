@@ -1,4 +1,4 @@
-// ── Configuration ────────────────────────────────────────────────────────────
+// ── Configuration ─────────────────────────────────────────────────────────────
 const OWNER  = 'Webu-PRO';
 const REPO   = 'status';
 const BRANCH = 'master';
@@ -7,7 +7,7 @@ const API    = `https://api.github.com/repos/${OWNER}/${REPO}`;
 const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 
 // ── Site / group definition ───────────────────────────────────────────────────
-// maintenance:true → page is intentionally 503; shown as "Karbantartás" badge.
+// maintenance:true → site intentionally returns 503; shown as "Karbantartás" badge.
 // Slugs must match .upptimerc.yml exactly.
 const GROUPS = [
   { id: 'webu', name: 'Webu', sites: [
@@ -47,6 +47,18 @@ const GROUPS = [
   ]},
 ];
 
+// ── HTML escape ────────────────────────────────────────────────────────────────
+// Must be called on every string from the network before inserting into innerHTML.
+function esc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // ── Session cache helpers ─────────────────────────────────────────────────────
 function cacheGet(key) {
   try {
@@ -59,41 +71,29 @@ function cacheGet(key) {
 }
 function cacheSet(key, data) {
   try { sessionStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); }
-  catch { /* private-window or quota — silently ignore */ }
+  catch { /* private-window or quota exceeded — silently skip */ }
 }
 
 // ── Data fetchers ─────────────────────────────────────────────────────────────
 
-// Fetches history/summary.json — array of {slug, status, uptimeYear, …}.
+// Fetches history/summary.json — array of
+//   { slug, status, uptimeYear, dailyMinutesDown, … }
+// dailyMinutesDown is a map of ISO-date → downtime minutes (Upptime-generated).
+// Returns [] when the file is missing or empty (newly provisioned repo).
 async function fetchSummary() {
   const cached = cacheGet('summary');
   if (cached) return cached;
   const res = await fetch(`${RAW}/history/summary.json`);
-  if (!res.ok) throw new Error(`summary.json ${res.status}`);
+  if (!res.ok) return [];
   const data = await res.json();
+  if (!Array.isArray(data)) return [];
   cacheSet('summary', data);
   return data;
 }
 
-// Fetches and parses history/<slug>.yml → computes dailyMinutesDown map.
-// Returns a Map: ISO-date → downtime minutes.
-async function fetchDailyDown(slug) {
-  const ckey = `hist:${slug}`;
-  const cached = cacheGet(ckey);
-  if (cached) return cached;
-  try {
-    const res = await fetch(`${RAW}/history/${slug}.yml`);
-    if (!res.ok) return {};
-    const text = await res.text();
-    const dmd = parseHistoryYaml(text);
-    cacheSet(ckey, dmd);
-    return dmd;
-  } catch { return {}; }
-}
-
 // Fetches open GitHub issues labelled "status".
-// Returns array of {number, title, url}.
-// Cached 2 min in sessionStorage to stay under 60 req/h/IP (unauthenticated).
+// Returns array of { number, title, url }.
+// Cached 2 min — 60 unauthenticated req/h/IP; page visits stay well under that.
 async function fetchIncidents() {
   const cached = cacheGet('incidents');
   if (cached) return cached;
@@ -104,66 +104,15 @@ async function fetchIncidents() {
     );
     if (!res.ok) return [];
     const issues = await res.json();
-    const data = issues.map(i => ({ number: i.number, title: i.title, url: i.html_url }));
+    if (!Array.isArray(issues)) return [];
+    const data = issues.map(i => ({
+      number: i.number,
+      title:  String(i.title  || ''),
+      url:    String(i.html_url || ''),
+    }));
     cacheSet('incidents', data);
     return data;
   } catch { return []; }
-}
-
-// ── YAML parser for history/<slug>.yml ───────────────────────────────────────
-// Format (one check per entry, every ~5 minutes):
-//   - startTime: "2024-01-01T00:00:00.000Z"
-//     status: up
-//     code: 200
-//     responseTime: 145
-// Each "down" entry ≈ 5 minutes downtime.
-// Also handles state-change records with endTime.
-function parseHistoryYaml(text) {
-  const dmd = {}; // date → minutes
-  const lines = text.split('\n');
-  let entry = null;
-
-  function flushEntry() {
-    if (!entry || entry.status !== 'down') return;
-    const start = new Date(entry.startTime || entry.time);
-    if (isNaN(start)) return;
-    const end = entry.endTime && entry.endTime !== 'null'
-      ? new Date(entry.endTime)
-      : new Date(start.getTime() + 5 * 60 * 1000); // ~5-min check interval
-
-    // Walk through each calendar day the outage spans
-    let cur = new Date(start);
-    cur.setUTCHours(0, 0, 0, 0);
-    while (cur.getTime() <= end.getTime()) {
-      const dayKey   = cur.toISOString().slice(0, 10);
-      const dayStart = cur.getTime();
-      const dayEnd   = dayStart + 86400000;
-      const oStart   = Math.max(start.getTime(), dayStart);
-      const oEnd     = Math.min(end.getTime(), dayEnd);
-      if (oEnd > oStart) {
-        dmd[dayKey] = (dmd[dayKey] || 0) + Math.round((oEnd - oStart) / 60000);
-      }
-      cur = new Date(dayEnd);
-    }
-  }
-
-  for (const line of lines) {
-    const t = line.trim();
-    if (t.startsWith('- ')) {
-      flushEntry();
-      entry = {};
-      const rest = t.slice(2);
-      const ci = rest.indexOf(': ');
-      if (ci !== -1) {
-        entry[rest.slice(0, ci)] = rest.slice(ci + 2).replace(/^['"]|['"]$/g, '');
-      }
-    } else if (entry && t.includes(': ')) {
-      const ci = t.indexOf(': ');
-      entry[t.slice(0, ci)] = t.slice(ci + 2).replace(/^['"]|['"]$/g, '');
-    }
-  }
-  flushEntry();
-  return dmd;
 }
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
@@ -176,10 +125,10 @@ function last90() {
   }
   return days;
 }
-const DAYS90 = last90();
-const NARROW = window.matchMedia('(max-width: 480px)').matches;
-const BAR_DAYS = NARROW ? DAYS90.slice(-45) : DAYS90;
-const BAR_LABEL = NARROW ? '45 napja' : '90 napja';
+const DAYS90    = last90();
+const NARROW    = window.matchMedia('(max-width: 480px)').matches;
+const BAR_DAYS  = NARROW ? DAYS90.slice(-30) : DAYS90;
+const BAR_LABEL = NARROW ? '30 napja' : '90 napja';
 
 function fmtMin(m) {
   if (!m) return 'Teljes rendelkezésre állás';
@@ -205,7 +154,7 @@ function iconX(big) {
   const s = big ? 32 : 20, p = big ? 9 : 6, sw = big ? 2.5 : 2;
   return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" fill="none" aria-hidden="true">
     <circle cx="${s/2}" cy="${s/2}" r="${s/2-1}" fill="#EF4444"/>
-    <path d="M${p} ${p}l${s-2*p} ${s-2*p}M${s-p} ${p}l${-s+2*p} ${s-2*p}"
+    <path d="M${p} ${p}l${s-2*p} ${s-2*p}M${s-p} ${p}l${-(s-2*p)} ${s-2*p}"
           stroke="white" stroke-width="${sw}" stroke-linecap="round"/>
   </svg>`;
 }
@@ -225,74 +174,68 @@ function statusIcon(state, big = false) {
 
 // ── Bar class by downtime minutes ─────────────────────────────────────────────
 function barCls(m) {
-  if (m == null)  return 'bar-nodata';
-  if (m === 0)    return 'bar-up';
-  if (m < 20)     return 'bar-minor';
-  if (m < 240)    return 'bar-major';
+  if (m == null) return 'bar-nodata';
+  if (m === 0)   return 'bar-up';
+  if (m < 20)    return 'bar-minor';
+  if (m < 240)   return 'bar-major';
   return 'bar-down';
 }
 
-// ── Build summary data map keyed by slug ──────────────────────────────────────
+// ── Uptime bars (rendered synchronously from summary.json dailyMinutesDown) ──
+function renderBars(dmd) {
+  let h = '<div class="bars" role="img" aria-label="Rendelkezésre állás naptár">';
+  for (const day of BAR_DAYS) {
+    const m   = (dmd || {})[day] ?? null;
+    // esc() guards the tooltip — fmtDateHU uses toLocaleDateString which is safe
+    // but the combined string goes into a title attr via innerHTML so we escape.
+    const tip = esc(`${fmtDateHU(day)}: ${m != null ? fmtMin(m) : 'nincs adat'}`);
+    h += `<div class="bar ${barCls(m)}" title="${tip}"></div>`;
+  }
+  h += `</div><div class="axis"><span>${esc(BAR_LABEL)}</span><span>Ma</span></div>`;
+  return h;
+}
+
+// ── Build data map keyed by slug ──────────────────────────────────────────────
 function buildMap(summary) {
   const map = {};
-  for (const s of summary) map[s.slug] = s;
+  for (const s of summary) {
+    if (s && typeof s.slug === 'string') map[s.slug] = s;
+  }
   return map;
 }
 
 // ── Resolve visible state ─────────────────────────────────────────────────────
 // Returns: 'up' | 'down' | 'degraded' | 'maintenance' | 'nodata'
-function resolveState(summaryEntry, cfg) {
-  if (!summaryEntry) return 'nodata';
-  if (cfg.maintenance && summaryEntry.status === 'up') return 'maintenance';
-  return summaryEntry.status || 'nodata';
-}
-
-// ── Render bars (skeleton while loading, real bars once dmd is available) ─────
-function skeletonBars() {
-  let h = `<div class="skel-bars" aria-hidden="true">`;
-  for (let i = 0; i < BAR_DAYS.length; i++) h += `<div class="skel-bar"></div>`;
-  h += `</div><div class="axis"><span>${BAR_LABEL}</span><span>Ma</span></div>`;
-  return h;
-}
-
-function realBars(dmd) {
-  let h = `<div class="bars" role="img" aria-label="90 napos rendelkezésre állás">`;
-  for (const day of BAR_DAYS) {
-    const m   = (dmd || {})[day] ?? null;
-    const tip = `${fmtDateHU(day)}: ${m != null ? fmtMin(m) : 'nincs adat'}`;
-    h += `<div class="bar ${barCls(m)}" title="${tip}"></div>`;
-  }
-  h += `</div><div class="axis"><span>${BAR_LABEL}</span><span>Ma</span></div>`;
-  return h;
+function resolveState(d, cfg) {
+  if (!d) return 'nodata';
+  if (cfg.maintenance && d.status === 'up') return 'maintenance';
+  return d.status || 'nodata';
 }
 
 // ── Render a single site row ───────────────────────────────────────────────────
 function renderSite(cfg, map) {
   const d     = map[cfg.slug];
   const state = resolveState(d, cfg);
-  const pct   = d ? (parseFloat(d.uptimeYear || d.uptime || '100')).toFixed(2) + '% uptime' : '—';
-  const badge = (state === 'maintenance')
-    ? ' <span class="maint-badge">Karbantartás</span>' : '';
-  return `<div class="site" id="site-${cfg.slug}">
+  const pct   = d
+    ? esc(parseFloat(d.uptimeYear || d.uptime || '100').toFixed(2) + '% uptime')
+    : '—';
+  const badge = state === 'maintenance'
+    ? ' <span class="maint-badge">Karbantartás</span>'
+    : '';
+  return `<div class="site" id="site-${esc(cfg.slug)}">
     <div class="site-hdr">
       ${statusIcon(state)}
-      <span class="site-name">${cfg.name}</span>${badge}
+      <span class="site-name">${esc(cfg.name)}</span>${badge}
       <span class="site-up">${pct}</span>
     </div>
-    <div class="bars-wrap" data-slug="${cfg.slug}">${skeletonBars()}</div>
+    ${renderBars(d?.dailyMinutesDown)}
   </div>`;
 }
 
 // ── Render a group ────────────────────────────────────────────────────────────
 function renderGroup(grp, map) {
-  const anyDown = grp.sites.some(s => {
-    const d = map[s.slug];
-    return d && d.status === 'down';
-  });
-  const anyDeg = grp.sites.some(s => {
-    const d = map[s.slug];
-    return d && d.status === 'degraded';
-  });
+  const anyDown = grp.sites.some(s => map[s.slug]?.status === 'down');
+  const anyDeg  = grp.sites.some(s => map[s.slug]?.status === 'degraded');
   const grpState = anyDown ? 'down' : anyDeg ? 'degraded' : 'up';
 
   const vals = grp.sites
@@ -300,16 +243,15 @@ function renderGroup(grp, map) {
     .filter(Boolean)
     .map(d => parseFloat(d.uptimeYear || d.uptime || '100'));
   const avg = vals.length
-    ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2) + '% uptime'
+    ? esc(parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2)) + '% uptime')
     : '';
 
   const sitesHtml = grp.sites.map(s => renderSite(s, map)).join('');
 
   return `<div class="group" role="listitem">
-    <button class="grp-hdr" aria-expanded="false" aria-controls="gb-${grp.id}"
-            data-group-id="${grp.id}">
+    <button class="grp-hdr" aria-expanded="false" aria-controls="gb-${esc(grp.id)}">
       ${statusIcon(grpState)}
-      <span class="grp-name">${grp.name}</span>
+      <span class="grp-name">${esc(grp.name)}</span>
       <span class="grp-count">&middot; ${grp.sites.length} komponens</span>
       <span class="grp-uptime">${avg}</span>
       <svg class="grp-chev" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
@@ -317,16 +259,28 @@ function renderGroup(grp, map) {
               stroke-width="1.8" stroke-linecap="round"/>
       </svg>
     </button>
-    <div class="grp-body" id="gb-${grp.id}" hidden>${sitesHtml}</div>
+    <div class="grp-body" id="gb-${esc(grp.id)}" hidden>${sitesHtml}</div>
   </div>`;
 }
 
 // ── Render overall headline ───────────────────────────────────────────────────
 function renderOverall(map) {
-  const allSites = GROUPS.flatMap(g => g.sites);
-  const anyDown   = allSites.some(s => map[s.slug]?.status === 'down');
-  const anyDeg    = allSites.some(s => map[s.slug]?.status === 'degraded');
-  const anyMaint  = allSites.some(s => s.maintenance && map[s.slug]?.status === 'up');
+  const allSites  = GROUPS.flatMap(g => g.sites);
+  const hasData   = allSites.some(s => map[s.slug] != null);
+
+  // Newly provisioned repo: no measurements yet
+  if (!hasData) {
+    return `<div class="overall-inner s-maint">
+      ${iconWarn(true)}
+      <span>Az első mérések folyamatban…</span>
+    </div>`;
+  }
+
+  const anyDown  = allSites.some(s => map[s.slug]?.status === 'down');
+  const anyDeg   = allSites.some(s => map[s.slug]?.status === 'degraded');
+  const anyMaint = allSites.some(s =>
+    s.maintenance && map[s.slug]?.status === 'up'
+  );
 
   let ost, otxt;
   if (anyDown)      { ost = 'down';  otxt = 'Részleges vagy teljes kiesés'; }
@@ -334,21 +288,25 @@ function renderOverall(map) {
   else if (anyMaint){ ost = 'maint'; otxt = 'Karbantartás folyamatban'; }
   else              { ost = 'up';    otxt = 'Minden rendszer működik'; }
 
-  const icon = ost === 'down' ? iconX(true)
+  const icon = ost === 'down'  ? iconX(true)
              : ost === 'maint' ? iconWarn(true)
              : iconCheck(true);
 
-  return `<div class="overall-inner s-${ost}">${icon}<span>${otxt}</span></div>`;
+  return `<div class="overall-inner s-${ost}">${icon}<span>${esc(otxt)}</span></div>`;
 }
 
 // ── Render incident banners ───────────────────────────────────────────────────
 function renderBanners(incidents, map) {
   const parts = [];
 
-  // GitHub incidents (open issues)
   if (incidents.length > 0) {
+    // Issue titles and URLs come from network — always esc() before innerHTML
     const issueLinks = incidents
-      .map(i => `<a class="banner-issue" href="${i.url}" target="_blank" rel="noopener noreferrer">${i.title}</a>`)
+      .map(i =>
+        `<a class="banner-issue"
+            href="${esc(i.url)}"
+            target="_blank" rel="noopener noreferrer">${esc(i.title)}</a>`
+      )
       .join('');
     parts.push(`<div class="banner banner-outage" role="alert" aria-live="assertive">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
@@ -359,7 +317,6 @@ function renderBanners(incidents, map) {
     </div>`);
   }
 
-  // Maintenance badge banner
   const maintSites = GROUPS.flatMap(g => g.sites).filter(
     s => s.maintenance && map[s.slug]?.status === 'up'
   );
@@ -369,24 +326,11 @@ function renderBanners(incidents, map) {
         <circle cx="9" cy="9" r="7.5" stroke="#D97706" stroke-width="1.5" fill="none"/>
         <path d="M9 5.5v5M9 12v1" stroke="#D97706" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
-      <div class="banner-text">Karbantartás: ${maintSites.map(s => s.name).join(', ')}</div>
+      <div class="banner-text">Karbantartás: ${maintSites.map(s => esc(s.name)).join(', ')}</div>
     </div>`);
   }
 
   return parts.join('');
-}
-
-// ── Lazy-load daily bars when a group expands ────────────────────────────────
-async function loadGroupBars(groupId) {
-  const grp = GROUPS.find(g => g.id === groupId);
-  if (!grp) return;
-  await Promise.all(grp.sites.map(async cfg => {
-    const wrap = document.querySelector(`[data-slug="${cfg.slug}"]`);
-    if (!wrap || wrap.dataset.barsLoaded) return;
-    const dmd = await fetchDailyDown(cfg.slug);
-    wrap.innerHTML = realBars(dmd);
-    wrap.dataset.barsLoaded = '1';
-  }));
 }
 
 // ── Wire up collapse / expand ─────────────────────────────────────────────────
@@ -397,9 +341,6 @@ function wireGroups() {
       const body = document.getElementById(btn.getAttribute('aria-controls'));
       btn.setAttribute('aria-expanded', String(!expanded));
       if (body) body.hidden = expanded;
-      if (!expanded) {
-        loadGroupBars(btn.dataset.groupId);
-      }
     });
   });
 }
@@ -432,15 +373,12 @@ async function init() {
     const map = buildMap(summary);
 
     const bannersHtml = renderBanners(incidents, map);
-    const groupsHtml  = GROUPS.map(g => renderGroup(g, map)).join('');
     const overallHtml = renderOverall(map);
+    const groupsHtml  = GROUPS.map(g => renderGroup(g, map)).join('');
 
-    // Build page timestamp from summary (use last-known check time)
-    const lastChecked = summary[0]?.time
-      ? new Date(summary[0].time * 1000).toLocaleString('hu-HU')
-      : null;
-    const footNote = lastChecked
-      ? `Utolsó ellenőrzés: ${lastChecked} &middot; `
+    const lastTs = summary[0]?.time;
+    const footNote = lastTs
+      ? `Utolsó ellenőrzés: ${esc(new Date(lastTs * 1000).toLocaleString('hu-HU'))} &middot; `
       : '';
 
     app.innerHTML = `
@@ -451,7 +389,8 @@ async function init() {
       </div>
       <p class="foot">
         ${footNote}Ellenőrzés
-        <a href="https://github.com/Webu-PRO/status/actions" target="_blank" rel="noopener">GitHub Actions</a>
+        <a href="https://github.com/Webu-PRO/status/actions"
+           target="_blank" rel="noopener">GitHub Actions</a>
         által &middot; adatok 5 percenként frissülnek
       </p>`;
 
@@ -460,8 +399,8 @@ async function init() {
 
     // Auto-refresh every 2 min (matches cache TTL)
     setTimeout(() => {
-      cacheSet('summary', null);
-      cacheSet('incidents', null);
+      try { sessionStorage.removeItem('summary'); sessionStorage.removeItem('incidents'); }
+      catch { /* ignore */ }
       init();
     }, CACHE_TTL);
 
