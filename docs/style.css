@@ -165,6 +165,7 @@ a:hover { text-decoration: underline; }
 }
 .grp-chevron svg { transition: transform .2s ease; }
 .grp-hdr[aria-expanded="true"] .grp-chevron svg { transform: rotate(180deg); }
+.grp-icon   { display: flex; align-items: center; flex-shrink: 0; }
 .grp-name   { font-size: .9375rem; font-weight: 700; color: var(--fg); flex-shrink: 0; }
 .grp-count  { font-size: .875rem; color: var(--fg-muted); flex-shrink: 0; }
 .grp-spacer { flex: 1; }
