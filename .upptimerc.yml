@@ -68,12 +68,6 @@ sites:
       - 301
       - 302
 
-  - name: Koronakert Medusa
-    url: https://medusa.koronakert.hu
-    slug: koronakert-medusa
-    expectedStatusCodes:
-      - 200
-
   - name: Koronakert Keresés
     url: https://search.koronakert.hu/health
     slug: koronakert-search

@@ -24,7 +24,6 @@ const GROUPS = [
   ]},
   { id: 'koronakert', name: 'Koronakert', sites: [
     { slug: 'koronakert-admin',  name: 'Admin' },
-    { slug: 'koronakert-medusa', name: 'Medusa' },
     { slug: 'koronakert-search', name: 'Keresés' },
     { slug: 'koronakert-img',    name: 'Képek' },
   ]},
