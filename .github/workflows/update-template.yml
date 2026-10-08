@@ -14,10 +14,14 @@
 # * More by Anand Chowdhary: https://anandchowdhary.com
 
 
+# IMPORTANT: Auto-schedule disabled to prevent overwriting our customised workflows and docs/.
+# Upptime's update-template command regenerates site.yml, update-template.yml, and other
+# files from the upstream template. Before running this manually via workflow_dispatch,
+# review the changeset and re-apply our customisations (pages.yml, notify.yml, site.yml
+# disable comment, this comment) afterwards. See feat/custom-status-ui for the full diff.
 name: Update Template CI
 on:
-  schedule:
-    - cron: "0 0 * * *"
+  # schedule: cron "0 0 * * *"  — disabled; see comment above
   repository_dispatch:
     types: [update_template]
   workflow_dispatch:
@@ -48,7 +52,7 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
           token: ${{ steps.app_token.outputs.token || secrets.GH_PAT || github.token }}
       - name: Update template
-        uses: upptime/uptime-monitor@master
+        uses: upptime/uptime-monitor@v1.44.1
         with:
           command: "update-template"
         env:
