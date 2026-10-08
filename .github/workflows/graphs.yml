@@ -24,6 +24,11 @@ on:
 concurrency:
   group: ${{ github.repository }}-${{ github.head_ref || github.ref_name }}-upptime
   cancel-in-progress: false
+# The Webu-PRO org keeps GITHUB_TOKEN read-only by default; Upptime commits history and opens incident issues.
+permissions:
+  contents: write
+  issues: write
+
 jobs:
   release:
     name: Generate graphs
