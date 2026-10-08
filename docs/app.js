@@ -80,25 +80,27 @@ function esc(s) {
 }
 
 // ── Demo mode ─────────────────────────────────────────────────────────────────
-// ?demo=1 in the URL activates a local fixture instead of fetching from GitHub.
-// Useful for verifying layout changes without a live network.
-// Local development only, so nobody can show fake outages on the public page with ?demo=1.
-const DEMO = typeof location !== 'undefined'
+// ?demo=<scenario> activates a local fixture (localhost only).
+//   ?demo=1 or ?demo=outage → single Volaria outage  → amber "Részleges kiesés"
+//   ?demo=maint             → webu.hu maintenance only → green "Minden rendszer működik"
+// Restricting to localhost prevents visitors from rendering fake outages on status.webu.hu.
+const _DEMO_SCENARIO = typeof location !== 'undefined'
   && ['localhost', '127.0.0.1'].includes(location.hostname)
-  && new URLSearchParams(location.search).has('demo');
+  ? new URLSearchParams(location.search).get('demo') // null | '1' | 'outage' | 'maint'
+  : null;
+const DEMO = _DEMO_SCENARIO != null;
 
-function _demoSummary() {
+function _demoSummary(scenario) {
   // Build a fake summary that exercises the bar coloring, downtime stubs, and overall state.
   // MONITORING_SINCE is 2026-10-08 — we pretend we've been running for 60 days so bars fill.
-  const demoStart = '2026-08-09'; // 60 days before 2026-10-08 so most bars show
   const base = (slug, extra = {}) => ({
     name: slug, url: '#', icon: '', slug,
     status: 'up', uptime: '99.95%', uptimeYear: '99.95%',
     time: 500, dailyMinutesDown: {}, ...extra,
   });
-  // Site with a few downtime days
+  // Site with a few downtime days (koronakert-admin bars)
   const dmd = { '2026-09-15': 8, '2026-09-22': 75, '2026-09-30': 180 };
-  return [
+  const sites = [
     base('webu-fooldal',  { uptimeYear: '100%',  dailyMinutesDown: {} }),
     base('webu-api',       { uptimeYear: '100%',  dailyMinutesDown: {} }),
     base('webu-admin',     { uptimeYear: '99.98%',dailyMinutesDown: { '2026-09-10': 3 } }),
@@ -112,7 +114,7 @@ function _demoSummary() {
     base('koronakert-search',  { uptimeYear: '100%', dailyMinutesDown: {} }),
     base('koronakert-img',     { uptimeYear: '100%', dailyMinutesDown: {} }),
     base('lifted-webshop', { uptimeYear: '100%', dailyMinutesDown: {} }),
-    base('lifted-admin',   { status: 'down', uptimeYear: '99.50%', dailyMinutesDown: { '2026-10-07': 240 } }),
+    base('lifted-admin',   { uptimeYear: '99.80%', dailyMinutesDown: { '2026-09-28': 60 } }),
     base('lifted-img',     { uptimeYear: '100%', dailyMinutesDown: {} }),
     base('teherguminet-webshop'),
     base('teherguminet-admin', { uptimeYear: '100%', dailyMinutesDown: {} }),
@@ -123,7 +125,7 @@ function _demoSummary() {
     base('modulix',           { uptimeYear: '99.99%', dailyMinutesDown: { '2026-09-05': 1 } }),
     base('ajtofelujito',      { uptimeYear: '100%', dailyMinutesDown: {} }),
     base('recodee',           { uptimeYear: '100%', dailyMinutesDown: {} }),
-    base('volaria',           { uptimeYear: '100%', dailyMinutesDown: {} }),
+    base('volaria',           { uptimeYear: '99.97%', dailyMinutesDown: { '2026-09-18': 15 } }),
     base('munchi-webshop',    { uptimeYear: '100%', dailyMinutesDown: {} }),
     base('tevagyapuzzle-webshop'),
     base('portas-webshop'),
@@ -131,19 +133,26 @@ function _demoSummary() {
     base('teszt-mite'),
     base('teszt-lebenyse'),
     base('teszt-gotto-admin'),
-  ].map(s => {
-    // Backfill dailyMinutesDown to cover demoStart so bars are not all grey
-    // (they are already correct via MONITORING_SINCE logic; no change needed to dailyMinutesDown)
-    return s;
-  });
+  ];
+
+  // Scenario: 'outage' | '1' → Volaria down (single partial outage → amber headline)
+  // Scenario: 'maint'        → all up; webu.hu maintenance comes from cfg.maintenance, not status
+  if (!scenario || scenario === '1' || scenario === 'outage') {
+    const v = sites.find(s => s.slug === 'volaria');
+    if (v) v.status = 'down';
+  }
+  // 'maint' scenario: every status stays 'up'; webu-fooldal maintenance is rendered via
+  // cfg.maintenance === true in GROUPS, independent of the summary status field.
+  return sites;
 }
-function _demoIncidents() {
-  // One active incident for lifted-admin
+function _demoIncidents(scenario) {
+  if (scenario === 'maint') return []; // maintenance-only: no open incidents
+  // Outage scenario: single Volaria incident
   return [{
     number: 42,
-    title: 'Lifted Admin – kapcsolódási hiba',
+    title: 'Volaria – az oldal nem érhető el',
     url: 'https://github.com/Webu-PRO/status/issues/42',
-    labels: ['status', 'lifted-admin'],
+    labels: ['status', 'volaria'],
   }];
 }
 
@@ -169,7 +178,7 @@ function cacheSet(key, data) {
 // dailyMinutesDown is a map of ISO-date → downtime minutes (Upptime-generated).
 // Returns [] when the file is missing or empty (newly provisioned repo).
 async function fetchSummary() {
-  if (DEMO) return _demoSummary();
+  if (DEMO) return _demoSummary(_DEMO_SCENARIO);
   const cached = cacheGet('summary');
   if (cached) return cached;
   const res = await fetch(`${RAW}/history/summary.json`);
@@ -185,7 +194,7 @@ async function fetchSummary() {
 // with "status" and the site slug, so labels map an incident to its component.
 // Cached 2 min — 60 unauthenticated req/h/IP; page visits stay well under that.
 async function fetchIncidents() {
-  if (DEMO) return _demoIncidents();
+  if (DEMO) return _demoIncidents(_DEMO_SCENARIO);
   const cached = cacheGet('incidents');
   if (cached) return cached;
   try {
@@ -380,6 +389,16 @@ function renderGroup(grp, map) {
   }
 
   // ── Multi-component: collapsible panel ───────────────────────────────────
+  // Compute group-level status for the header icon (amber/red when any component is down).
+  const grpDownSites = grp.sites.filter(s => {
+    const st = resolveState(map[s.slug], s);
+    return st === 'down' || st === 'degraded';
+  });
+  const grpHalfDown = grpDownSites.length >= grp.sites.length / 2;
+  const grpIconHtml = grpDownSites.length
+    ? `<span class="grp-icon">${grpHalfDown ? iconX(16) : iconWarn(16)}</span>`
+    : '';
+
   const vals = grp.sites
     .map(s => map[s.slug])
     .filter(Boolean)
@@ -407,7 +426,7 @@ function renderGroup(grp, map) {
   return `<div class="group-panel" role="listitem">
     <button class="grp-hdr" aria-expanded="${expanded}" aria-controls="gb-${esc(grp.id)}">
       <div class="grp-chevron">${chevronIcon}</div>
-      <span class="grp-name">${esc(grp.name)}</span>
+      ${grpIconHtml}<span class="grp-name">${esc(grp.name)}</span>
       <span class="grp-count">&middot; ${grp.sites.length} komponens</span>
       <span class="grp-spacer"></span>
       <span class="grp-uptime">${avgFmt}</span>
