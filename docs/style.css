@@ -96,7 +96,6 @@ a:hover { text-decoration: underline; }
   color: var(--fg);
 }
 .banner-outage .banner-issue { color: var(--link); }
-.banner-maint { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
 .banner-text { flex: 1; }
 .banner-issue { display: block; margin-top: 3px; font-weight: 400; font-size: .8125rem; }
 
@@ -123,8 +122,10 @@ a:hover { text-decoration: underline; }
 }
 .halo-up    { background: var(--halo-up); }
 .halo-warn  { background: var(--halo-warn); }
-.halo-maint { background: var(--halo-warn); }
 .halo-down  { background: var(--halo-down); }
+.overall-sub {
+  margin-top: 8px; font-size: .875rem; color: var(--fg-muted);
+}
 
 /* ── Card content area ─────────────────────────────────────────────────── */
 .card-content { padding: 0 32px 32px; }
@@ -211,6 +212,8 @@ a:hover { text-decoration: underline; }
 /* ── Mobile ─────────────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
   .hdr-inner { padding: 14px 16px; }
+  /* Logo + two header actions do not fit at 390px; the issue link is also in the dropdown's issues page. */
+  .ghost-btn { display: none; }
   .logo { font-size: 1.125rem; }
   .overall { padding: 20px 20px 16px; }
   .overall-inner { font-size: 1.0625rem; }

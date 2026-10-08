@@ -82,7 +82,10 @@ function esc(s) {
 // ── Demo mode ─────────────────────────────────────────────────────────────────
 // ?demo=1 in the URL activates a local fixture instead of fetching from GitHub.
 // Useful for verifying layout changes without a live network.
-const DEMO = typeof location !== 'undefined' && new URLSearchParams(location.search).has('demo');
+// Local development only, so nobody can show fake outages on the public page with ?demo=1.
+const DEMO = typeof location !== 'undefined'
+  && ['localhost', '127.0.0.1'].includes(location.hostname)
+  && new URLSearchParams(location.search).has('demo');
 
 function _demoSummary() {
   // Build a fake summary that exercises the bar coloring, downtime stubs, and overall state.
@@ -228,10 +231,12 @@ function fmtMin(m) {
 function fmtDateHU(iso) {
   return new Date(iso + 'T00:00:00').toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' });
 }
+function fmtPct(v) {
+  const r = v.toFixed(2);
+  return (r === '100.00' ? '100' : r) + '% uptime';
+}
 function fmtUptime(d) {
-  const v = parseFloat(d?.uptimeYear || d?.uptime || '100');
-  if (v >= 100) return '100% uptime';
-  return v.toFixed(2) + '% uptime';
+  return fmtPct(parseFloat(d?.uptimeYear || d?.uptime || '100'));
 }
 
 // ── Icon SVG helpers ──────────────────────────────────────────────────────────
@@ -382,7 +387,7 @@ function renderGroup(grp, map) {
   const avgVal = vals.length
     ? vals.reduce((a, b) => a + b, 0) / vals.length
     : 100;
-  const avgFmt = avgVal >= 100 ? '100% uptime' : esc(avgVal.toFixed(2) + '% uptime');
+  const avgFmt = esc(fmtPct(avgVal));
 
   // Read expand state from localStorage (expanded by default)
   let expanded = true;
@@ -414,6 +419,14 @@ function renderGroup(grp, map) {
 }
 
 // ── Render overall headline ───────────────────────────────────────────────────
+// "Lifted Admin" for a component inside a multi-site client, plain "Volaria" otherwise.
+function labelOf(slug) {
+  const g = GROUPS.find(gr => gr.sites.some(s => s.slug === slug));
+  const s = g?.sites.find(x => x.slug === slug);
+  if (!g || !s) return slug;
+  return g.sites.length > 1 && s.name !== g.name ? `${g.name} ${s.name}` : s.name;
+}
+
 function renderOverall(map) {
   const allSites = GROUPS.flatMap(g => g.sites);
   const hasData  = allSites.some(s => map[s.slug] != null);
@@ -425,23 +438,25 @@ function renderOverall(map) {
     </div>`;
   }
 
-  const downSites = allSites.filter(s => map[s.slug]?.status === 'down');
-  const anyDeg    = allSites.some(s => map[s.slug]?.status === 'degraded');
-  const anyMaint  = allSites.some(s => s.maintenance && map[s.slug]?.status === 'up');
-  const halfDown  = downSites.length >= allSites.length / 2;
+  // A planned maintenance page never changes the headline; it only shows on its own row.
+  // One or a few components down is a partial outage named in a subline, not a page-wide alarm.
+  const affected = allSites.filter(s => ['down', 'degraded'].includes(map[s.slug]?.status));
+  const halfDown = affected.length >= allSites.length / 2;
 
   let haloClass, icon, otxt;
-  if (halfDown)        { haloClass = 'halo-down'; icon = iconX(24);    otxt = 'Jelentős kiesés'; }
-  else if (downSites.length > 0)
-                       { haloClass = 'halo-warn'; icon = iconWarn(24); otxt = 'Részleges kiesés'; }
-  else if (anyDeg)     { haloClass = 'halo-warn'; icon = iconWarn(24); otxt = 'Részleges kiesés'; }
-  else if (anyMaint)   { haloClass = 'halo-maint';icon = iconWarn(24); otxt = 'Karbantartás folyamatban'; }
-  else                 { haloClass = 'halo-up';   icon = iconCheck(24); otxt = 'Minden rendszer működik'; }
+  if (halfDown)              { haloClass = 'halo-down'; icon = iconX(24);    otxt = 'Jelentős kiesés'; }
+  else if (affected.length)  { haloClass = 'halo-warn'; icon = iconWarn(24); otxt = 'Részleges kiesés'; }
+  else                       { haloClass = 'halo-up';   icon = iconCheck(24); otxt = 'Minden rendszer működik'; }
+
+  const names = affected.map(s => labelOf(s.slug));
+  const sub = affected.length && !halfDown
+    ? `<div class="overall-sub">${affected.length} komponens érintett: ${names.map(esc).join(', ')}</div>`
+    : '';
 
   return `<div class="overall-inner">
     <div class="overall-halo ${esc(haloClass)}">${icon}</div>
     <span>${esc(otxt)}</span>
-  </div>`;
+  </div>${sub}`;
 }
 
 // ── Render incident banners ───────────────────────────────────────────────────
@@ -466,19 +481,7 @@ function renderBanners(incidents, map) {
     </div>`);
   }
 
-  const maintSites = GROUPS.flatMap(g => g.sites).filter(
-    s => s.maintenance && map[s.slug]?.status === 'up'
-  );
-  if (maintSites.length > 0 && incidents.length === 0) {
-    parts.push(`<div class="banner banner-maint" role="status">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-        <circle cx="9" cy="9" r="7.5" stroke="#D97706" stroke-width="1.5" fill="none"/>
-        <path d="M9 5.5v5M9 12v1" stroke="#D97706" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      <div class="banner-text">Karbantartás: ${maintSites.map(s => esc(s.name)).join(', ')}</div>
-    </div>`);
-  }
-
+  // Maintenance gets no page-wide banner; the badge on its own row is enough.
   return parts.join('');
 }
 
