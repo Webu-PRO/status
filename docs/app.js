@@ -92,7 +92,8 @@ async function fetchSummary() {
 }
 
 // Fetches open GitHub issues labelled "status".
-// Returns array of { number, title, url }.
+// Returns array of { number, title, url, labels }. Upptime labels each incident
+// with "status" and the site slug, so labels map an incident to its component.
 // Cached 2 min — 60 unauthenticated req/h/IP; page visits stay well under that.
 async function fetchIncidents() {
   const cached = cacheGet('incidents');
@@ -109,6 +110,7 @@ async function fetchIncidents() {
       number: i.number,
       title:  String(i.title  || ''),
       url:    String(i.html_url || ''),
+      labels: (i.labels || []).map(l => String(typeof l === 'string' ? l : l?.name || '')),
     }));
     cacheSet('incidents', data);
     return data;
@@ -196,10 +198,18 @@ function renderBars(dmd) {
 }
 
 // ── Build data map keyed by slug ──────────────────────────────────────────────
-function buildMap(summary) {
+// summary.json is regenerated less often than incidents open, so an open
+// incident labelled with a component's slug overrides that component to down.
+function buildMap(summary, incidents) {
   const map = {};
   for (const s of summary) {
     if (s && typeof s.slug === 'string') map[s.slug] = s;
+  }
+  const slugs = new Set(GROUPS.flatMap(g => g.sites.map(s => s.slug)));
+  for (const i of incidents) {
+    for (const label of i.labels || []) {
+      if (slugs.has(label)) map[label] = { ...(map[label] || {}), status: 'down' };
+    }
   }
   return map;
 }
@@ -368,18 +378,21 @@ function wireDropdown() {
 async function init() {
   const app = document.getElementById('app');
 
+  // Keep the groups the visitor opened across the periodic re-render.
+  const openGroups = new Set(
+    [...document.querySelectorAll('.grp-hdr[aria-expanded="true"]')].map(b => b.getAttribute('aria-controls'))
+  );
+
   try {
     const [summary, incidents] = await Promise.all([fetchSummary(), fetchIncidents()]);
-    const map = buildMap(summary);
+    const map = buildMap(summary, incidents);
 
     const bannersHtml = renderBanners(incidents, map);
     const overallHtml = renderOverall(map);
     const groupsHtml  = GROUPS.map(g => renderGroup(g, map)).join('');
 
-    const lastTs = summary[0]?.time;
-    const footNote = lastTs
-      ? `Utolsó ellenőrzés: ${esc(new Date(lastTs * 1000).toLocaleString('hu-HU'))} &middot; `
-      : '';
+    // summary.json's `time` is a response time in ms, not a timestamp, so show when this page last refreshed.
+    const footNote = `Frissítve: ${esc(new Date().toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' }))} &middot; `;
 
     app.innerHTML = `
       ${bannersHtml}
@@ -395,14 +408,11 @@ async function init() {
       </p>`;
 
     wireGroups();
-    wireDropdown();
-
-    // Auto-refresh every 2 min (matches cache TTL)
-    setTimeout(() => {
-      try { sessionStorage.removeItem('summary'); sessionStorage.removeItem('incidents'); }
-      catch { /* ignore */ }
-      init();
-    }, CACHE_TTL);
+    for (const id of openGroups) {
+      const btn = document.querySelector(`.grp-hdr[aria-controls="${id}"]`);
+      const body = document.getElementById(id);
+      if (btn && body) { btn.setAttribute('aria-expanded', 'true'); body.hidden = false; }
+    }
 
   } catch (err) {
     app.innerHTML = `
@@ -411,9 +421,16 @@ async function init() {
         <a href="https://github.com/Webu-PRO/status" target="_blank" rel="noopener">
           Státusz megtekintése GitHubon</a>
       </p>`;
-    wireDropdown();
     console.error('Status page load error:', err);
   }
+
+  // Auto-refresh every 2 min (matches cache TTL), also retrying after a failed load.
+  setTimeout(() => {
+    try { sessionStorage.removeItem('summary'); sessionStorage.removeItem('incidents'); }
+    catch { /* ignore */ }
+    init();
+  }, CACHE_TTL);
 }
 
+wireDropdown();
 init();
