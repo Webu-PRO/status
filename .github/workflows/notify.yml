@@ -66,7 +66,7 @@ jobs:
           while IFS=$'\t' read -r number title url; do
             [ -z "$number" ] && continue
             # $title and $url are local shell vars from jq — injection-safe.
-            # $NTFY_TOPIC is an env secret — never interpolated from ${{ }}.
+            # $NTFY_TOPIC is an env secret — never interpolated through a workflow expression.
             curl -sf \
               -H "Title: Webu kiesés" \
               -H "Priority: high" \
