@@ -314,7 +314,7 @@ function renderBanners(incidents, map) {
     const issueLinks = incidents
       .map(i =>
         `<a class="banner-issue"
-            href="${esc(i.url)}"
+            href="${esc(/^https:\/\//.test(i.url) ? i.url : "#")}"
             target="_blank" rel="noopener noreferrer">${esc(i.title)}</a>`
       )
       .join('');
