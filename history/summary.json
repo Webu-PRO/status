@@ -12,7 +12,7 @@
     "uptimeYear": "100.00%",
     "time": 663,
     "timeDay": 413,
-    "timeWeek": 434,
+    "timeWeek": 459,
     "timeMonth": 663,
     "timeYear": 663,
     "dailyMinutesDown": {}
@@ -23,18 +23,19 @@
     "icon": "https://icons.duckduckgo.com/ip3/webu.hu.ico",
     "slug": "webu-api",
     "status": "down",
-    "uptime": "92.00%",
+    "uptime": "88.53%",
     "uptimeDay": "0.00%",
-    "uptimeWeek": "74.06%",
-    "uptimeMonth": "92.00%",
-    "uptimeYear": "92.00%",
+    "uptimeWeek": "61.39%",
+    "uptimeMonth": "88.53%",
+    "uptimeYear": "88.53%",
     "time": 658,
     "timeDay": 322,
-    "timeWeek": 663,
+    "timeWeek": 632,
     "timeMonth": 658,
     "timeYear": 658,
     "dailyMinutesDown": {
-      "2026-10-31": 269,
+      "2026-11-01": 107,
+      "2026-10-31": 1440,
       "2026-10-30": 1440,
       "2026-10-29": 905
     }
@@ -44,19 +45,21 @@
     "url": "https://admin.webu.hu",
     "icon": "https://icons.duckduckgo.com/ip3/admin.webu.hu.ico",
     "slug": "webu-admin",
-    "status": "up",
-    "uptime": "99.10%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.10%",
-    "uptimeYear": "99.10%",
+    "status": "down",
+    "uptime": "98.79%",
+    "uptimeDay": "91.79%",
+    "uptimeWeek": "98.83%",
+    "uptimeMonth": "98.79%",
+    "uptimeYear": "98.79%",
     "time": 1278,
     "timeDay": 1463,
-    "timeWeek": 1163,
+    "timeWeek": 1196,
     "timeMonth": 1278,
     "timeYear": 1278,
     "dailyMinutesDown": {
-      "2026-10-21": 294
+      "2026-10-21": 294,
+      "2026-11-01": 107,
+      "2026-10-31": 11
     }
   },
   {
@@ -72,7 +75,7 @@
     "uptimeYear": "100.00%",
     "time": 596,
     "timeDay": 612,
-    "timeWeek": 557,
+    "timeWeek": 602,
     "timeMonth": 596,
     "timeYear": 596,
     "dailyMinutesDown": {}
@@ -82,19 +85,21 @@
     "url": "https://seo.webu.hu",
     "icon": "https://icons.duckduckgo.com/ip3/seo.webu.hu.ico",
     "slug": "webu-seo",
-    "status": "up",
-    "uptime": "99.12%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.12%",
-    "uptimeYear": "99.12%",
+    "status": "down",
+    "uptime": "98.82%",
+    "uptimeDay": "92.12%",
+    "uptimeWeek": "98.87%",
+    "uptimeMonth": "98.82%",
+    "uptimeYear": "98.82%",
     "time": 637,
     "timeDay": 574,
-    "timeWeek": 663,
+    "timeWeek": 654,
     "timeMonth": 637,
     "timeYear": 637,
     "dailyMinutesDown": {
-      "2026-10-21": 289
+      "2026-10-21": 289,
+      "2026-11-01": 107,
+      "2026-10-31": 6
     }
   },
   {
@@ -102,19 +107,21 @@
     "url": "https://kollarrobert.sk",
     "icon": "https://icons.duckduckgo.com/ip3/kollarrobert.sk.ico",
     "slug": "kollar-fooldal",
-    "status": "up",
-    "uptime": "99.13%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.13%",
-    "uptimeYear": "99.13%",
+    "status": "down",
+    "uptime": "98.84%",
+    "uptimeDay": "92.46%",
+    "uptimeWeek": "98.92%",
+    "uptimeMonth": "98.84%",
+    "uptimeYear": "98.84%",
     "time": 742,
     "timeDay": 788,
-    "timeWeek": 744,
+    "timeWeek": 756,
     "timeMonth": 742,
     "timeYear": 742,
     "dailyMinutesDown": {
-      "2026-10-21": 284
+      "2026-10-21": 284,
+      "2026-11-01": 107,
+      "2026-10-31": 2
     }
   },
   {
@@ -122,19 +129,20 @@
     "url": "https://rezervacia.kollarrobert.sk/readyz",
     "icon": "https://icons.duckduckgo.com/ip3/rezervacia.kollarrobert.sk.ico",
     "slug": "kollar-rezervacia",
-    "status": "up",
-    "uptime": "99.15%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.15%",
-    "uptimeYear": "99.15%",
+    "status": "down",
+    "uptime": "98.87%",
+    "uptimeDay": "92.80%",
+    "uptimeWeek": "98.97%",
+    "uptimeMonth": "98.87%",
+    "uptimeYear": "98.87%",
     "time": 551,
     "timeDay": 610,
-    "timeWeek": 536,
+    "timeWeek": 559,
     "timeMonth": 551,
     "timeYear": 551,
     "dailyMinutesDown": {
-      "2026-10-21": 279
+      "2026-10-21": 279,
+      "2026-11-01": 104
     }
   },
   {
@@ -142,19 +150,20 @@
     "url": "https://admin.kollarrobert.sk",
     "icon": "https://icons.duckduckgo.com/ip3/admin.kollarrobert.sk.ico",
     "slug": "kollar-admin",
-    "status": "up",
-    "uptime": "99.16%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.16%",
-    "uptimeYear": "99.16%",
+    "status": "down",
+    "uptime": "98.90%",
+    "uptimeDay": "93.14%",
+    "uptimeWeek": "99.02%",
+    "uptimeMonth": "98.90%",
+    "uptimeYear": "98.90%",
     "time": 760,
     "timeDay": 1028,
-    "timeWeek": 801,
+    "timeWeek": 852,
     "timeMonth": 760,
     "timeYear": 760,
     "dailyMinutesDown": {
-      "2026-10-21": 274
+      "2026-10-21": 274,
+      "2026-11-01": 99
     }
   },
   {
@@ -162,19 +171,20 @@
     "url": "https://koronakert.eu",
     "icon": "https://icons.duckduckgo.com/ip3/koronakert.eu.ico",
     "slug": "koronakert-webshop",
-    "status": "up",
-    "uptime": "99.17%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.17%",
-    "uptimeYear": "99.17%",
+    "status": "down",
+    "uptime": "98.93%",
+    "uptimeDay": "93.48%",
+    "uptimeWeek": "99.07%",
+    "uptimeMonth": "98.93%",
+    "uptimeYear": "98.93%",
     "time": 531,
     "timeDay": 671,
-    "timeWeek": 541,
+    "timeWeek": 546,
     "timeMonth": 531,
     "timeYear": 531,
     "dailyMinutesDown": {
-      "2026-10-21": 269
+      "2026-10-21": 269,
+      "2026-11-01": 94
     }
   },
   {
@@ -182,19 +192,20 @@
     "url": "https://admin.koronakert.eu",
     "icon": "https://icons.duckduckgo.com/ip3/admin.koronakert.eu.ico",
     "slug": "koronakert-admin",
-    "status": "up",
-    "uptime": "99.19%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.19%",
-    "uptimeYear": "99.19%",
+    "status": "down",
+    "uptime": "98.96%",
+    "uptimeDay": "93.82%",
+    "uptimeWeek": "99.12%",
+    "uptimeMonth": "98.96%",
+    "uptimeYear": "98.96%",
     "time": 1184,
     "timeDay": 1406,
-    "timeWeek": 1144,
+    "timeWeek": 1200,
     "timeMonth": 1184,
     "timeYear": 1184,
     "dailyMinutesDown": {
-      "2026-10-21": 265
+      "2026-10-21": 265,
+      "2026-11-01": 89
     }
   },
   {
@@ -203,19 +214,20 @@
     "icon": "https://icons.duckduckgo.com/ip3/search.koronakert.hu.ico",
     "slug": "koronakert-search",
     "status": "down",
-    "uptime": "98.57%",
-    "uptimeDay": "85.71%",
-    "uptimeWeek": "97.96%",
-    "uptimeMonth": "98.57%",
-    "uptimeYear": "98.57%",
+    "uptime": "94.86%",
+    "uptimeDay": "0.00%",
+    "uptimeWeek": "85.28%",
+    "uptimeMonth": "94.86%",
+    "uptimeYear": "94.86%",
     "time": 654,
     "timeDay": 0,
-    "timeWeek": 601,
+    "timeWeek": 624,
     "timeMonth": 654,
     "timeYear": 654,
     "dailyMinutesDown": {
       "2026-10-21": 260,
-      "2026-10-31": 206
+      "2026-11-01": 107,
+      "2026-10-31": 1376
     }
   },
   {
@@ -224,19 +236,20 @@
     "icon": "https://icons.duckduckgo.com/ip3/img.koronakert.hu.ico",
     "slug": "koronakert-img",
     "status": "down",
-    "uptime": "98.59%",
-    "uptimeDay": "85.74%",
-    "uptimeWeek": "97.96%",
-    "uptimeMonth": "98.59%",
-    "uptimeYear": "98.59%",
+    "uptime": "94.88%",
+    "uptimeDay": "0.00%",
+    "uptimeWeek": "85.29%",
+    "uptimeMonth": "94.88%",
+    "uptimeYear": "94.88%",
     "time": 636,
     "timeDay": 0,
-    "timeWeek": 592,
+    "timeWeek": 614,
     "timeMonth": 636,
     "timeYear": 636,
     "dailyMinutesDown": {
       "2026-10-21": 255,
-      "2026-10-31": 205
+      "2026-11-01": 107,
+      "2026-10-31": 1376
     }
   },
   {
@@ -244,19 +257,20 @@
     "url": "https://lifted.sk",
     "icon": "https://icons.duckduckgo.com/ip3/lifted.sk.ico",
     "slug": "lifted-webshop",
-    "status": "up",
-    "uptime": "99.23%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.23%",
-    "uptimeYear": "99.23%",
+    "status": "down",
+    "uptime": "99.02%",
+    "uptimeDay": "94.21%",
+    "uptimeWeek": "99.17%",
+    "uptimeMonth": "99.02%",
+    "uptimeYear": "99.02%",
     "time": 731,
     "timeDay": 823,
-    "timeWeek": 752,
+    "timeWeek": 759,
     "timeMonth": 731,
     "timeYear": 731,
     "dailyMinutesDown": {
-      "2026-10-21": 250
+      "2026-10-21": 250,
+      "2026-11-01": 83
     }
   },
   {
@@ -264,19 +278,20 @@
     "url": "https://admin.lifted.sk",
     "icon": "https://icons.duckduckgo.com/ip3/admin.lifted.sk.ico",
     "slug": "lifted-admin",
-    "status": "up",
-    "uptime": "99.25%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.25%",
-    "uptimeYear": "99.25%",
+    "status": "down",
+    "uptime": "99.05%",
+    "uptimeDay": "94.55%",
+    "uptimeWeek": "99.22%",
+    "uptimeMonth": "99.05%",
+    "uptimeYear": "99.05%",
     "time": 1080,
     "timeDay": 1187,
-    "timeWeek": 1083,
+    "timeWeek": 1122,
     "timeMonth": 1080,
     "timeYear": 1080,
     "dailyMinutesDown": {
-      "2026-10-21": 245
+      "2026-10-21": 245,
+      "2026-11-01": 78
     }
   },
   {
@@ -284,19 +299,20 @@
     "url": "https://img.lifted.sk",
     "icon": "https://icons.duckduckgo.com/ip3/img.lifted.sk.ico",
     "slug": "lifted-img",
-    "status": "up",
-    "uptime": "99.26%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.26%",
-    "uptimeYear": "99.26%",
+    "status": "down",
+    "uptime": "99.08%",
+    "uptimeDay": "94.89%",
+    "uptimeWeek": "99.27%",
+    "uptimeMonth": "99.08%",
+    "uptimeYear": "99.08%",
     "time": 544,
     "timeDay": 611,
-    "timeWeek": 583,
+    "timeWeek": 616,
     "timeMonth": 544,
     "timeYear": 544,
     "dailyMinutesDown": {
-      "2026-10-21": 240
+      "2026-10-21": 240,
+      "2026-11-01": 74
     }
   },
   {
@@ -304,21 +320,22 @@
     "url": "https://teherguminet.hu",
     "icon": "https://icons.duckduckgo.com/ip3/teherguminet.hu.ico",
     "slug": "teherguminet-webshop",
-    "status": "up",
-    "uptime": "98.26%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "98.26%",
-    "uptimeYear": "98.26%",
+    "status": "down",
+    "uptime": "98.12%",
+    "uptimeDay": "95.23%",
+    "uptimeWeek": "99.32%",
+    "uptimeMonth": "98.12%",
+    "uptimeYear": "98.12%",
     "time": 1171,
     "timeDay": 1037,
-    "timeWeek": 1231,
+    "timeWeek": 1277,
     "timeMonth": 1171,
     "timeYear": 1171,
     "dailyMinutesDown": {
       "2026-10-10": 69,
       "2026-10-17": 264,
-      "2026-10-21": 236
+      "2026-10-21": 236,
+      "2026-11-01": 69
     }
   },
   {
@@ -326,19 +343,20 @@
     "url": "https://admin.teherguminet.hu",
     "icon": "https://icons.duckduckgo.com/ip3/admin.teherguminet.hu.ico",
     "slug": "teherguminet-admin",
-    "status": "up",
-    "uptime": "99.29%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.29%",
-    "uptimeYear": "99.29%",
+    "status": "down",
+    "uptime": "99.13%",
+    "uptimeDay": "95.57%",
+    "uptimeWeek": "99.37%",
+    "uptimeMonth": "99.13%",
+    "uptimeYear": "99.13%",
     "time": 1529,
     "timeDay": 1301,
-    "timeWeek": 1729,
+    "timeWeek": 1859,
     "timeMonth": 1529,
     "timeYear": 1529,
     "dailyMinutesDown": {
-      "2026-10-21": 231
+      "2026-10-21": 231,
+      "2026-11-01": 64
     }
   },
   {
@@ -346,21 +364,22 @@
     "url": "https://compastor.hu",
     "icon": "https://icons.duckduckgo.com/ip3/compastor.hu.ico",
     "slug": "compastor-webshop",
-    "status": "up",
-    "uptime": "98.29%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "98.29%",
-    "uptimeYear": "98.29%",
+    "status": "down",
+    "uptime": "98.18%",
+    "uptimeDay": "95.91%",
+    "uptimeWeek": "99.42%",
+    "uptimeMonth": "98.18%",
+    "uptimeYear": "98.18%",
     "time": 486,
     "timeDay": 516,
-    "timeWeek": 565,
+    "timeWeek": 600,
     "timeMonth": 486,
     "timeYear": 486,
     "dailyMinutesDown": {
       "2026-10-10": 69,
       "2026-10-17": 264,
-      "2026-10-21": 226
+      "2026-10-21": 226,
+      "2026-11-01": 59
     }
   },
   {
@@ -368,19 +387,20 @@
     "url": "https://admin.compastor.hu",
     "icon": "https://icons.duckduckgo.com/ip3/admin.compastor.hu.ico",
     "slug": "compastor-admin",
-    "status": "up",
-    "uptime": "99.32%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.32%",
-    "uptimeYear": "99.32%",
+    "status": "down",
+    "uptime": "99.19%",
+    "uptimeDay": "96.25%",
+    "uptimeWeek": "99.46%",
+    "uptimeMonth": "99.19%",
+    "uptimeYear": "99.19%",
     "time": 1226,
     "timeDay": 1459,
-    "timeWeek": 1242,
+    "timeWeek": 1292,
     "timeMonth": 1226,
     "timeYear": 1226,
     "dailyMinutesDown": {
-      "2026-10-21": 221
+      "2026-10-21": 221,
+      "2026-11-01": 54
     }
   },
   {
@@ -388,21 +408,22 @@
     "url": "https://marvahome.com",
     "icon": "https://icons.duckduckgo.com/ip3/marvahome.com.ico",
     "slug": "marvahome-webshop",
-    "status": "up",
-    "uptime": "98.32%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "98.32%",
-    "uptimeYear": "98.32%",
+    "status": "down",
+    "uptime": "98.24%",
+    "uptimeDay": "96.59%",
+    "uptimeWeek": "99.51%",
+    "uptimeMonth": "98.24%",
+    "uptimeYear": "98.24%",
     "time": 428,
     "timeDay": 857,
-    "timeWeek": 512,
+    "timeWeek": 543,
     "timeMonth": 428,
     "timeYear": 428,
     "dailyMinutesDown": {
       "2026-10-10": 68,
       "2026-10-17": 263,
-      "2026-10-21": 216
+      "2026-10-21": 216,
+      "2026-11-01": 49
     }
   },
   {
@@ -410,19 +431,20 @@
     "url": "https://admin.marvahome.com",
     "icon": "https://icons.duckduckgo.com/ip3/admin.marvahome.com.ico",
     "slug": "marvahome-admin",
-    "status": "up",
-    "uptime": "99.35%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.35%",
-    "uptimeYear": "99.35%",
+    "status": "down",
+    "uptime": "99.25%",
+    "uptimeDay": "96.93%",
+    "uptimeWeek": "99.56%",
+    "uptimeMonth": "99.25%",
+    "uptimeYear": "99.25%",
     "time": 1072,
     "timeDay": 1285,
-    "timeWeek": 1060,
+    "timeWeek": 1107,
     "timeMonth": 1072,
     "timeYear": 1072,
     "dailyMinutesDown": {
-      "2026-10-21": 211
+      "2026-10-21": 211,
+      "2026-11-01": 44
     }
   },
   {
@@ -431,14 +453,14 @@
     "icon": "https://icons.duckduckgo.com/ip3/modulix.sk.ico",
     "slug": "modulix",
     "status": "up",
-    "uptime": "97.37%",
+    "uptime": "97.47%",
     "uptimeDay": "100.00%",
-    "uptimeWeek": "91.48%",
-    "uptimeMonth": "97.37%",
-    "uptimeYear": "97.37%",
+    "uptimeWeek": "93.79%",
+    "uptimeMonth": "97.47%",
+    "uptimeYear": "97.47%",
     "time": 908,
     "timeDay": 1497,
-    "timeWeek": 773,
+    "timeWeek": 928,
     "timeMonth": 908,
     "timeYear": 908,
     "dailyMinutesDown": {
@@ -459,7 +481,7 @@
     "uptimeYear": "100.00%",
     "time": 2013,
     "timeDay": 2292,
-    "timeWeek": 1960,
+    "timeWeek": 1998,
     "timeMonth": 2013,
     "timeYear": 2013,
     "dailyMinutesDown": {}
@@ -469,19 +491,20 @@
     "url": "https://recodee.com",
     "icon": "https://icons.duckduckgo.com/ip3/recodee.com.ico",
     "slug": "recodee",
-    "status": "up",
-    "uptime": "99.37%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.37%",
-    "uptimeYear": "99.37%",
+    "status": "down",
+    "uptime": "99.28%",
+    "uptimeDay": "97.27%",
+    "uptimeWeek": "99.61%",
+    "uptimeMonth": "99.28%",
+    "uptimeYear": "99.28%",
     "time": 725,
     "timeDay": 811,
-    "timeWeek": 716,
+    "timeWeek": 713,
     "timeMonth": 725,
     "timeYear": 725,
     "dailyMinutesDown": {
-      "2026-10-21": 207
+      "2026-10-21": 207,
+      "2026-11-01": 39
     }
   },
   {
@@ -490,14 +513,14 @@
     "icon": "https://icons.duckduckgo.com/ip3/volariax.com.ico",
     "slug": "volaria",
     "status": "down",
-    "uptime": "34.25%",
-    "uptimeDay": "17.01%",
-    "uptimeWeek": "33.54%",
-    "uptimeMonth": "34.25%",
-    "uptimeYear": "34.25%",
+    "uptime": "32.96%",
+    "uptimeDay": "0.00%",
+    "uptimeWeek": "28.01%",
+    "uptimeMonth": "32.96%",
+    "uptimeYear": "32.96%",
     "time": 1304,
-    "timeDay": 795,
-    "timeWeek": 845,
+    "timeDay": 603,
+    "timeWeek": 827,
     "timeMonth": 1304,
     "timeYear": 1304,
     "dailyMinutesDown": {
@@ -524,7 +547,8 @@
       "2026-10-28": 887,
       "2026-10-29": 1145,
       "2026-10-30": 1195,
-      "2026-10-31": 270
+      "2026-11-01": 107,
+      "2026-10-31": 1440
     }
   },
   {
@@ -532,19 +556,20 @@
     "url": "https://munchi.hu",
     "icon": "https://icons.duckduckgo.com/ip3/munchi.hu.ico",
     "slug": "munchi-webshop",
-    "status": "up",
-    "uptime": "99.40%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.40%",
-    "uptimeYear": "99.40%",
+    "status": "down",
+    "uptime": "99.33%",
+    "uptimeDay": "97.94%",
+    "uptimeWeek": "99.71%",
+    "uptimeMonth": "99.33%",
+    "uptimeYear": "99.33%",
     "time": 690,
     "timeDay": 792,
-    "timeWeek": 651,
+    "timeWeek": 682,
     "timeMonth": 690,
     "timeYear": 690,
     "dailyMinutesDown": {
-      "2026-10-21": 197
+      "2026-10-21": 197,
+      "2026-11-01": 30
     }
   },
   {
@@ -552,21 +577,22 @@
     "url": "https://tevagyapuzzle.hu",
     "icon": "https://icons.duckduckgo.com/ip3/tevagyapuzzle.hu.ico",
     "slug": "tevagyapuzzle-webshop",
-    "status": "up",
-    "uptime": "98.39%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "98.39%",
-    "uptimeYear": "98.39%",
+    "status": "down",
+    "uptime": "98.38%",
+    "uptimeDay": "98.28%",
+    "uptimeWeek": "99.75%",
+    "uptimeMonth": "98.38%",
+    "uptimeYear": "98.38%",
     "time": 423,
     "timeDay": 434,
-    "timeWeek": 454,
+    "timeWeek": 442,
     "timeMonth": 423,
     "timeYear": 423,
     "dailyMinutesDown": {
       "2026-10-10": 68,
       "2026-10-17": 263,
-      "2026-10-21": 192
+      "2026-10-21": 192,
+      "2026-11-01": 25
     }
   },
   {
@@ -574,21 +600,22 @@
     "url": "https://portasmosonmagyarovar.hu",
     "icon": "https://icons.duckduckgo.com/ip3/portasmosonmagyarovar.hu.ico",
     "slug": "portas-webshop",
-    "status": "up",
+    "status": "down",
     "uptime": "98.41%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
+    "uptimeDay": "98.62%",
+    "uptimeWeek": "99.80%",
     "uptimeMonth": "98.41%",
     "uptimeYear": "98.41%",
     "time": 451,
     "timeDay": 454,
-    "timeWeek": 488,
+    "timeWeek": 476,
     "timeMonth": 451,
     "timeYear": 451,
     "dailyMinutesDown": {
       "2026-10-10": 68,
       "2026-10-17": 263,
-      "2026-10-21": 187
+      "2026-10-21": 187,
+      "2026-11-01": 20
     }
   },
   {
@@ -596,19 +623,20 @@
     "url": "https://trusbau.webuteszt.hu",
     "icon": "https://icons.duckduckgo.com/ip3/trusbau.webuteszt.hu.ico",
     "slug": "teszt-trusbau",
-    "status": "up",
-    "uptime": "99.44%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.44%",
-    "uptimeYear": "99.44%",
+    "status": "down",
+    "uptime": "99.42%",
+    "uptimeDay": "98.96%",
+    "uptimeWeek": "99.85%",
+    "uptimeMonth": "99.42%",
+    "uptimeYear": "99.42%",
     "time": 1137,
     "timeDay": 1086,
-    "timeWeek": 917,
+    "timeWeek": 960,
     "timeMonth": 1137,
     "timeYear": 1137,
     "dailyMinutesDown": {
-      "2026-10-21": 183
+      "2026-10-21": 183,
+      "2026-11-01": 15
     }
   },
   {
@@ -616,19 +644,20 @@
     "url": "https://mite.webuteszt.hu",
     "icon": "https://icons.duckduckgo.com/ip3/mite.webuteszt.hu.ico",
     "slug": "teszt-mite",
-    "status": "up",
-    "uptime": "99.46%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.46%",
-    "uptimeYear": "99.46%",
+    "status": "down",
+    "uptime": "99.45%",
+    "uptimeDay": "99.30%",
+    "uptimeWeek": "99.90%",
+    "uptimeMonth": "99.45%",
+    "uptimeYear": "99.45%",
     "time": 881,
     "timeDay": 1084,
-    "timeWeek": 885,
+    "timeWeek": 920,
     "timeMonth": 881,
     "timeYear": 881,
     "dailyMinutesDown": {
-      "2026-10-21": 178
+      "2026-10-21": 178,
+      "2026-11-01": 10
     }
   },
   {
@@ -636,19 +665,20 @@
     "url": "https://lebenyse.webuteszt.hu",
     "icon": "https://icons.duckduckgo.com/ip3/lebenyse.webuteszt.hu.ico",
     "slug": "teszt-lebenyse",
-    "status": "up",
+    "status": "down",
     "uptime": "99.47%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
+    "uptimeDay": "99.64%",
+    "uptimeWeek": "99.95%",
     "uptimeMonth": "99.47%",
     "uptimeYear": "99.47%",
     "time": 1427,
     "timeDay": 1609,
-    "timeWeek": 1422,
+    "timeWeek": 1459,
     "timeMonth": 1427,
     "timeYear": 1427,
     "dailyMinutesDown": {
-      "2026-10-21": 173
+      "2026-10-21": 173,
+      "2026-11-01": 5
     }
   },
   {
@@ -656,19 +686,20 @@
     "url": "https://admin.gotto.webuteszt.hu",
     "icon": "https://icons.duckduckgo.com/ip3/admin.gotto.webuteszt.hu.ico",
     "slug": "teszt-gotto-admin",
-    "status": "up",
-    "uptime": "99.49%",
-    "uptimeDay": "100.00%",
+    "status": "down",
+    "uptime": "99.50%",
+    "uptimeDay": "99.97%",
     "uptimeWeek": "100.00%",
-    "uptimeMonth": "99.49%",
-    "uptimeYear": "99.49%",
+    "uptimeMonth": "99.50%",
+    "uptimeYear": "99.50%",
     "time": 1606,
     "timeDay": 1689,
-    "timeWeek": 1622,
+    "timeWeek": 1704,
     "timeMonth": 1606,
     "timeYear": 1606,
     "dailyMinutesDown": {
-      "2026-10-21": 168
+      "2026-10-21": 168,
+      "2026-11-01": 0
     }
   }
 ]
