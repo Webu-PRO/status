@@ -24,6 +24,10 @@ on:
   schedule:
     - cron: "*/15 * * * *"
 
+concurrency:
+  group: notify
+  cancel-in-progress: false
+
 permissions:
   issues: write   # needed to add dedup labels via gh issue edit
 
@@ -149,7 +153,8 @@ jobs:
               <p>Észlelve: $created (UTC)</p>
               <p><a href=\"$u\">Incidens megnyitása</a> · <a href=\"https://status.webu.hu\">status.webu.hu</a></p>"
             if send_mail "🔴 Kiesés: $title" "$html"; then
-              gh issue edit "$number" --repo "$REPO" --add-label "email-sent-open"
+              gh issue edit "$number" --repo "$REPO" --add-label "email-sent-open" \
+                || echo "::warning::label email-sent-open failed for #$number"
             else
               echo "::warning::Resend send failed for #$number"
             fi
@@ -169,7 +174,8 @@ jobs:
               <p>Helyreállt: $closed (UTC)</p>
               <p><a href=\"$u\">Incidens megnyitása</a> · <a href=\"https://status.webu.hu\">status.webu.hu</a></p>"
             if send_mail "✅ Megoldva: $title" "$html"; then
-              gh issue edit "$number" --repo "$REPO" --add-label "email-sent-closed"
+              gh issue edit "$number" --repo "$REPO" --add-label "email-sent-closed" \
+                || echo "::warning::label email-sent-closed failed for #$number"
             else
               echo "::warning::Resend send failed for #$number"
             fi
