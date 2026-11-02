@@ -22,6 +22,7 @@ Valós idejű státuszoldal a Webu infrastruktúra és ügyféloldalak monitoroz
 - **Atom feed:** https://github.com/Webu-PRO/status/issues.atom
 - **Incidensek:** https://github.com/Webu-PRO/status/issues?q=label%3Astatus
 - **ntfy.sh:** push értesítés kieséskor / megoldáskor (NTFY_TOPIC secret szükséges)
+- **E-mail (Resend):** nagy.viktordp@gmail.com kieséskor / megoldáskor (`RESEND_API_KEY` secret szükséges, opcionális `RESEND_FROM`, alap: `status@webu.hu`)
 
 ## Hiba bejelentése
 
