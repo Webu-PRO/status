@@ -13,7 +13,7 @@ sites:
       - 503           # karbantartás banner van fent, ez elvárt 503
 
   - name: Webu API
-    url: https://webu.hu/api
+    url: https://api.webu.hu/health
     slug: webu-api
     expectedStatusCodes:
       - 200
