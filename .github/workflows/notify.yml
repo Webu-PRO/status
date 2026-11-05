@@ -29,6 +29,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
+  contents: read  # checkout, for scripts/incident-email.mjs
   issues: write   # needed to add dedup labels via gh issue edit
 
 jobs:
@@ -122,61 +123,52 @@ jobs:
       # Open: every open 'status' issue without email-sent-open.
       # Closed: only issues we already e-mailed as open (email-sent-open),
       # so the first run does not mail out old, historical incidents.
-      # JSON body is built with jq --arg — titles never touch shell syntax.
+      # Subject, HTML and text come from scripts/incident-email.mjs, which reads
+      # the issue as JSON on stdin — titles never touch shell syntax.
+      - uses: actions/checkout@v6
+        if: env.RESEND_API_KEY != ''
+
       - name: E-mail incidents via Resend
         if: env.RESEND_API_KEY != ''
         run: |
           FROM="${RESEND_FROM:-Webu Státusz <status@webu.hu>}"
 
-          send_mail() { # $1 subject, $2 html
-            jq -n --arg from "$FROM" --arg to "$ALERT_EMAIL_TO" \
-                  --arg subject "$1" --arg html "$2" \
-                  '{from:$from, to:[$to], subject:$subject, html:$html}' \
+          send_mail() { # $1 issue number
+            gh issue view "$1" --repo "$REPO" \
+                --json number,title,url,body,createdAt,closedAt \
+            | node scripts/incident-email.mjs \
+            | jq --arg from "$FROM" --arg to "$ALERT_EMAIL_TO" '. + {from:$from, to:[$to]}' \
             | curl -sf -X POST https://api.resend.com/emails \
                 -H "Authorization: Bearer $RESEND_API_KEY" \
                 -H "Content-Type: application/json" \
                 --data-binary @- > /dev/null
           }
 
-          esc() { jq -rn --arg s "$1" '$s|@html'; }
-
           gh issue list --repo "$REPO" --label "status" --state open --limit 50 \
-            --json number,title,labels,url,createdAt \
-            --jq '.[] | select((.labels|map(.name)|contains(["email-sent-open"]))|not)
-                  | "\(.number)\t\(.title)\t\(.url)\t\(.createdAt)"' > /tmp/mail_open.tsv
+            --json number,labels \
+            --jq '.[] | select((.labels|map(.name)|contains(["email-sent-open"]))|not) | .number' > /tmp/mail_open.txt
 
-          while IFS=$'\t' read -r number title url created; do
+          while read -r number; do
             [ -z "$number" ] && continue
-            t=$(esc "$title"); u=$(esc "$url")
-            html="<h2 style=\"color:#dc2626\">🔴 Aktív kiesés</h2>
-              <p><strong>$t</strong></p>
-              <p>Észlelve: $created (UTC)</p>
-              <p><a href=\"$u\">Incidens megnyitása</a> · <a href=\"https://status.webu.hu\">status.webu.hu</a></p>"
-            if send_mail "🔴 Kiesés: $title" "$html"; then
+            if send_mail "$number"; then
               gh issue edit "$number" --repo "$REPO" --add-label "email-sent-open" \
                 || echo "::warning::label email-sent-open failed for #$number"
             else
               echo "::warning::Resend send failed for #$number"
             fi
-          done < /tmp/mail_open.tsv
+          done < /tmp/mail_open.txt
 
           gh issue list --repo "$REPO" --label "status" --label "email-sent-open" \
             --state closed --limit 20 \
-            --json number,title,labels,url,closedAt \
-            --jq '.[] | select((.labels|map(.name)|contains(["email-sent-closed"]))|not)
-                  | "\(.number)\t\(.title)\t\(.url)\t\(.closedAt)"' > /tmp/mail_closed.tsv
+            --json number,labels \
+            --jq '.[] | select((.labels|map(.name)|contains(["email-sent-closed"]))|not) | .number' > /tmp/mail_closed.txt
 
-          while IFS=$'\t' read -r number title url closed; do
+          while read -r number; do
             [ -z "$number" ] && continue
-            t=$(esc "$title"); u=$(esc "$url")
-            html="<h2 style=\"color:#16a34a\">✅ Kiesés megoldva</h2>
-              <p><strong>$t</strong></p>
-              <p>Helyreállt: $closed (UTC)</p>
-              <p><a href=\"$u\">Incidens megnyitása</a> · <a href=\"https://status.webu.hu\">status.webu.hu</a></p>"
-            if send_mail "✅ Megoldva: $title" "$html"; then
+            if send_mail "$number"; then
               gh issue edit "$number" --repo "$REPO" --add-label "email-sent-closed" \
                 || echo "::warning::label email-sent-closed failed for #$number"
             else
               echo "::warning::Resend send failed for #$number"
             fi
-          done < /tmp/mail_closed.tsv
+          done < /tmp/mail_closed.txt
