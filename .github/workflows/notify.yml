@@ -45,8 +45,6 @@ jobs:
       REPO: Webu-PRO/status
 
     steps:
-      - uses: actions/checkout@v6
-
       # Ensure our dedup labels exist before assigning them
       - name: Create dedup labels if missing
         run: |
@@ -127,6 +125,9 @@ jobs:
       # so the first run does not mail out old, historical incidents.
       # Subject, HTML and text come from scripts/incident-email.mjs, which reads
       # the issue as JSON on stdin — titles never touch shell syntax.
+      - uses: actions/checkout@v6
+        if: env.RESEND_API_KEY != ''
+
       - name: E-mail incidents via Resend
         if: env.RESEND_API_KEY != ''
         run: |
