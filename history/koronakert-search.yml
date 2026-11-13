@@ -1,7 +1,7 @@
 url: https://search.koronakert.hu/health
-status: down
-code: 0
-responseTime: 0
-lastUpdated: 2026-11-13T03:49:05.200Z
+status: up
+code: 200
+responseTime: 655
+lastUpdated: 2026-11-13T07:58:01.038Z
 startTime: 2026-10-08T12:02:06.434Z
 generator: Upptime <https://github.com/upptime/upptime>
