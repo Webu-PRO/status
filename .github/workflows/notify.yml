@@ -29,7 +29,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read  # checkout, for scripts/incident-email.mjs
+  contents: read  # checkout, for scripts/notify-email.mjs
   issues: write   # needed to add dedup labels via gh issue edit
 
 jobs:
@@ -56,6 +56,9 @@ jobs:
             2>/dev/null || true
           gh label create "email-sent-closed" --repo "$REPO" \
             --color "c2e0c6" --description "Resend closed e-mail sent" \
+            2>/dev/null || true
+          gh label create "mass-outage"       --repo "$REPO" \
+            --color "b60205" --description "part of a mass outage (one e-mail for all)" \
             2>/dev/null || true
           gh label create "ntfy-sent-closed" --repo "$REPO" \
             --color "bfd4f2" --description "ntfy closed notification sent" \
@@ -120,55 +123,16 @@ jobs:
           done < /tmp/new_closed.tsv
 
       # ── E-mail (Resend) ────────────────────────────────────────────────
-      # Open: every open 'status' issue without email-sent-open.
-      # Closed: only issues we already e-mailed as open (email-sent-open),
-      # so the first run does not mail out old, historical incidents.
-      # Subject, HTML and text come from scripts/incident-email.mjs, which reads
-      # the issue as JSON on stdin — titles never touch shell syntax.
+      # scripts/notify-email.mjs decides what to send and labels the issues it covered:
+      #   - one site down → its own e-mail (after a short grace period);
+      #   - several down together → ONE "tömeges kiesés" e-mail, later joiners are only labelled;
+      #   - recoveries are summarised the same way.
+      # Closed issues are only mailed when they were mailed as open (email-sent-open),
+      # so old, historical incidents are never sent. Issue titles reach the script as
+      # JSON from `gh` — they never touch shell syntax.
       - uses: actions/checkout@v6
         if: env.RESEND_API_KEY != ''
 
       - name: E-mail incidents via Resend
         if: env.RESEND_API_KEY != ''
-        run: |
-          FROM="${RESEND_FROM:-Webu Státusz <status@webu.hu>}"
-
-          send_mail() { # $1 issue number
-            gh issue view "$1" --repo "$REPO" \
-                --json number,title,url,body,createdAt,closedAt \
-            | node scripts/incident-email.mjs \
-            | jq --arg from "$FROM" --arg to "$ALERT_EMAIL_TO" '. + {from:$from, to:[$to]}' \
-            | curl -sf -X POST https://api.resend.com/emails \
-                -H "Authorization: Bearer $RESEND_API_KEY" \
-                -H "Content-Type: application/json" \
-                --data-binary @- > /dev/null
-          }
-
-          gh issue list --repo "$REPO" --label "status" --state open --limit 50 \
-            --json number,labels \
-            --jq '.[] | select((.labels|map(.name)|contains(["email-sent-open"]))|not) | .number' > /tmp/mail_open.txt
-
-          while read -r number; do
-            [ -z "$number" ] && continue
-            if send_mail "$number"; then
-              gh issue edit "$number" --repo "$REPO" --add-label "email-sent-open" \
-                || echo "::warning::label email-sent-open failed for #$number"
-            else
-              echo "::warning::Resend send failed for #$number"
-            fi
-          done < /tmp/mail_open.txt
-
-          gh issue list --repo "$REPO" --label "status" --label "email-sent-open" \
-            --state closed --limit 20 \
-            --json number,labels \
-            --jq '.[] | select((.labels|map(.name)|contains(["email-sent-closed"]))|not) | .number' > /tmp/mail_closed.txt
-
-          while read -r number; do
-            [ -z "$number" ] && continue
-            if send_mail "$number"; then
-              gh issue edit "$number" --repo "$REPO" --add-label "email-sent-closed" \
-                || echo "::warning::label email-sent-closed failed for #$number"
-            else
-              echo "::warning::Resend send failed for #$number"
-            fi
-          done < /tmp/mail_closed.txt
+        run: node scripts/notify-email.mjs

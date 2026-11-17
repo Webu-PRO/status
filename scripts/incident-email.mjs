@@ -8,6 +8,7 @@
 import { pathToFileURL } from 'node:url'
 
 const STATUS_PAGE = 'https://status.webu.hu'
+const INCIDENTS = 'https://github.com/Webu-PRO/status/issues?q=is%3Aissue+label%3Astatus'
 const LOGO = 'https://webu.hu/assets/email-logo.png'
 const FONT = "'Instrument Sans',Helvetica,Arial,sans-serif"
 const MONO = "'JetBrains Mono',Menlo,Consolas,monospace"
@@ -63,6 +64,62 @@ function detailRows(rows) {
   </tr>`).join('')
 }
 
+// The shared e-mail shell: accent bar, navy header, lead, detail box, buttons, footer.
+function page({ subject, lead, state, eyebrow, heading, headline, rows, incidentUrl, incidentLabel = 'Incidens megnyitása a GitHubon' }) {
+  return `<!doctype html>
+<html lang="hu" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light only">
+<title>${esc(subject)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  @media (max-width:620px){ .px{padding-left:22px!important;padding-right:22px!important} .h1{font-size:28px!important} }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#EEF2F8;-webkit-text-size-adjust:100%">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">${esc(lead)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#EEF2F8">
+<tr><td align="center" style="padding:32px 12px">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#FFFFFF;border-radius:16px;overflow:hidden;border:1px solid #DCE3EE">
+<tr><td style="height:4px;line-height:4px;font-size:4px;background:${state.accent}">&nbsp;</td></tr>
+<tr><td style="background:#0F1626">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr><td class="px" style="padding:28px 40px 0">
+      <a href="${STATUS_PAGE}"><img src="${LOGO}" width="106" height="40" alt="WEBU" style="display:block;border:0;width:106px;height:auto"></a>
+    </td></tr>
+    <tr><td class="px" style="padding:28px 40px 34px;font-family:${FONT}">
+      <div style="font-family:${MONO};font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#7FB0FF">${esc(eyebrow)}</div>
+      <h1 class="h1" style="margin:12px 0 0;font-size:34px;line-height:1.12;letter-spacing:-.02em;font-weight:700;color:#FFFFFF">${esc(heading)}<br><span style="color:${state.onNavy}">${esc(headline)}</span></h1>
+    </td></tr>
+  </table>
+</td></tr>
+<tr><td class="px" style="padding:30px 40px 0;font-family:${FONT};font-size:16px;line-height:1.6;color:#2D3748">${esc(lead)}</td></tr>
+<tr><td class="px" style="padding:20px 40px 0">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${state.tint};border:1px solid ${state.border};border-radius:12px">
+    <tr><td style="padding:9px 22px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${detailRows(rows)}</table>
+    </td></tr>
+  </table>
+</td></tr>
+<tr><td class="px" style="padding:26px 40px 34px;font-family:${FONT}">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+    <td style="border-radius:10px;background:#1D6EF5"><a href="${STATUS_PAGE}" style="display:inline-block;padding:13px 22px;font-family:${FONT};font-size:15px;font-weight:600;color:#FFFFFF;text-decoration:none;border-radius:10px">Státuszoldal megnyitása &rarr;</a></td>
+  </tr></table>
+  <p style="margin:16px 0 0;font-size:14px;line-height:1.6"><a href="${esc(incidentUrl)}" style="color:#1D6EF5;text-decoration:none;font-weight:600">${esc(incidentLabel)}</a></p>
+</td></tr>
+<tr><td class="px" style="padding:22px 40px;background:#0F1626;font-family:${FONT};color:#9AA6BC;font-size:13px;line-height:1.7">
+  Automatikus értesítés a Webu monitorozásából · <a href="${STATUS_PAGE}" style="color:#EAEEF6;text-decoration:none">status.webu.hu</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>`
+}
+
 export function renderIncidentEmail(issue) {
   const service = parseService(issue.title)
   const details = parseBody(issue.body)
@@ -93,58 +150,7 @@ export function renderIncidentEmail(issue) {
     error && { label: resolved ? 'Észlelt hiba' : 'Hiba', html: esc(error) },
   ].filter(Boolean)
 
-  const html = `<!doctype html>
-<html lang="hu" xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light only">
-<meta name="supported-color-schemes" content="light only">
-<title>${esc(subject)}</title>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
-<style>
-  @media (max-width:620px){ .px{padding-left:22px!important;padding-right:22px!important} .h1{font-size:28px!important} }
-</style>
-</head>
-<body style="margin:0;padding:0;background:#EEF2F8;-webkit-text-size-adjust:100%">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">${esc(lead)}</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#EEF2F8">
-<tr><td align="center" style="padding:32px 12px">
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#FFFFFF;border-radius:16px;overflow:hidden;border:1px solid #DCE3EE">
-<tr><td style="height:4px;line-height:4px;font-size:4px;background:${state.accent}">&nbsp;</td></tr>
-<tr><td style="background:#0F1626">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr><td class="px" style="padding:28px 40px 0">
-      <a href="${STATUS_PAGE}"><img src="${LOGO}" width="106" height="40" alt="WEBU" style="display:block;border:0;width:106px;height:auto"></a>
-    </td></tr>
-    <tr><td class="px" style="padding:28px 40px 34px;font-family:${FONT}">
-      <div style="font-family:${MONO};font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#7FB0FF">${esc(eyebrow)}</div>
-      <h1 class="h1" style="margin:12px 0 0;font-size:34px;line-height:1.12;letter-spacing:-.02em;font-weight:700;color:#FFFFFF">${esc(service)}<br><span style="color:${state.onNavy}">${state.headline}</span></h1>
-    </td></tr>
-  </table>
-</td></tr>
-<tr><td class="px" style="padding:30px 40px 0;font-family:${FONT};font-size:16px;line-height:1.6;color:#2D3748">${esc(lead)}</td></tr>
-<tr><td class="px" style="padding:20px 40px 0">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${state.tint};border:1px solid ${state.border};border-radius:12px">
-    <tr><td style="padding:9px 22px">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${detailRows(rows)}</table>
-    </td></tr>
-  </table>
-</td></tr>
-<tr><td class="px" style="padding:26px 40px 34px;font-family:${FONT}">
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-    <td style="border-radius:10px;background:#1D6EF5"><a href="${STATUS_PAGE}" style="display:inline-block;padding:13px 22px;font-family:${FONT};font-size:15px;font-weight:600;color:#FFFFFF;text-decoration:none;border-radius:10px">Státuszoldal megnyitása &rarr;</a></td>
-  </tr></table>
-  <p style="margin:16px 0 0;font-size:14px;line-height:1.6"><a href="${esc(incidentUrl)}" style="color:#1D6EF5;text-decoration:none;font-weight:600">Incidens megnyitása a GitHubon</a></p>
-</td></tr>
-<tr><td class="px" style="padding:22px 40px;background:#0F1626;font-family:${FONT};color:#9AA6BC;font-size:13px;line-height:1.7">
-  Automatikus értesítés a Webu monitorozásából · <a href="${STATUS_PAGE}" style="color:#EAEEF6;text-decoration:none">status.webu.hu</a>
-</td></tr>
-</table>
-</td></tr>
-</table>
-</body>
-</html>`
+  const html = page({ subject, lead, state, eyebrow, heading: service, headline: state.headline, rows, incidentUrl })
 
   const text = [
     lead,
@@ -159,6 +165,62 @@ export function renderIncidentEmail(issue) {
     `Státuszoldal: ${STATUS_PAGE}`,
     `Incidens: ${incidentUrl}`,
   ].filter((line) => line !== false && line !== null).join('\n')
+
+  return { subject, html, text }
+}
+
+const serviceList = (issues) => issues.map((i) => parseService(i.title))
+
+/**
+ * ONE e-mail for many incidents at once (a host or network outage takes everything down together).
+ * `issues`: the incidents covered; `resolved`: true for the "everything is back" e-mail;
+ * `stillDown`: how many incidents are still open when a resolved e-mail goes out.
+ */
+export function renderMassEmail(issues, { resolved = false, stillDown = 0 } = {}) {
+  const state = STATES[resolved ? 'up' : 'down']
+  const names = serviceList(issues)
+  const n = issues.length
+  const first = issues.map((i) => i.createdAt).sort()[0]
+  const last = issues.map((i) => i.closedAt).filter(Boolean).sort().at(-1)
+  const duration = resolved && last ? formatDuration(first, last) : null
+
+  const lead = resolved
+    ? `A tömeges kiesés megszűnt: ${n} szolgáltatás újra rendben válaszol${stillDown ? `, ${stillDown} még nem elérhető` : ''}.`
+    : `A monitorozás tömeges kiesést észlelt: eddig ${n} szolgáltatás nem válaszol, és az ellenőrzés még tart, a szám nőhet. Erről a kiesésről nem küldünk több levelet szolgáltatásonként – a pontos, friss lista a státuszoldalon van. Helyreálláskor egyetlen összefoglalót küldünk.`
+
+  const subject = resolved
+    ? `${state.dot} Helyreállt: ${n} szolgáltatás${duration ? ` (${duration})` : ''}`
+    : `${state.dot} Tömeges kiesés: ${n} szolgáltatás nem elérhető`
+
+  const rows = [
+    { label: 'Állapot', html: `<span style="color:${state.accent};font-weight:700">${resolved ? state.label : 'Tömeges kiesés'}</span>` },
+    { label: 'Érintett', html: names.map(esc).join('<br>') },
+    { label: 'Észlelve', html: esc(formatTime(first)) },
+    resolved && last && { label: 'Helyreállt', html: esc(formatTime(last)) },
+    duration && { label: 'Időtartam', html: esc(duration), strong: true },
+  ].filter(Boolean)
+
+  const html = page({
+    subject, lead, state, rows,
+    eyebrow: 'Webu Státusz · tömeges kiesés',
+    heading: `${n} szolgáltatás`,
+    headline: state.headline,
+    incidentUrl: INCIDENTS,
+    incidentLabel: 'Incidensek a GitHubon',
+  })
+
+  const text = [
+    lead,
+    '',
+    'Érintett:',
+    ...names.map((name) => `- ${name}`),
+    '',
+    `Észlelve: ${formatTime(first)}`,
+    resolved && last && `Helyreállt: ${formatTime(last)}`,
+    duration && `Időtartam: ${duration}`,
+    '',
+    `Státuszoldal: ${STATUS_PAGE}`,
+  ].filter((line) => line !== false && line !== null && line !== undefined).join('\n')
 
   return { subject, html, text }
 }
