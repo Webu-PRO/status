@@ -8,6 +8,7 @@
 import { pathToFileURL } from 'node:url'
 
 const STATUS_PAGE = 'https://status.webu.hu'
+const INCIDENTS = 'https://github.com/Webu-PRO/status/issues?q=is%3Aissue+label%3Astatus'
 const LOGO = 'https://webu.hu/assets/email-logo.png'
 const FONT = "'Instrument Sans',Helvetica,Arial,sans-serif"
 const MONO = "'JetBrains Mono',Menlo,Consolas,monospace"
@@ -64,7 +65,7 @@ function detailRows(rows) {
 }
 
 // The shared e-mail shell: accent bar, navy header, lead, detail box, buttons, footer.
-function page({ subject, lead, state, eyebrow, heading, headline, rows, incidentUrl }) {
+function page({ subject, lead, state, eyebrow, heading, headline, rows, incidentUrl, incidentLabel = 'Incidens megnyitása a GitHubon' }) {
   return `<!doctype html>
 <html lang="hu" xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -107,7 +108,7 @@ function page({ subject, lead, state, eyebrow, heading, headline, rows, incident
   <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
     <td style="border-radius:10px;background:#1D6EF5"><a href="${STATUS_PAGE}" style="display:inline-block;padding:13px 22px;font-family:${FONT};font-size:15px;font-weight:600;color:#FFFFFF;text-decoration:none;border-radius:10px">Státuszoldal megnyitása &rarr;</a></td>
   </tr></table>
-  <p style="margin:16px 0 0;font-size:14px;line-height:1.6"><a href="${esc(incidentUrl)}" style="color:#1D6EF5;text-decoration:none;font-weight:600">Incidens megnyitása a GitHubon</a></p>
+  <p style="margin:16px 0 0;font-size:14px;line-height:1.6"><a href="${esc(incidentUrl)}" style="color:#1D6EF5;text-decoration:none;font-weight:600">${esc(incidentLabel)}</a></p>
 </td></tr>
 <tr><td class="px" style="padding:22px 40px;background:#0F1626;font-family:${FONT};color:#9AA6BC;font-size:13px;line-height:1.7">
   Automatikus értesítés a Webu monitorozásából · <a href="${STATUS_PAGE}" style="color:#EAEEF6;text-decoration:none">status.webu.hu</a>
@@ -193,7 +194,7 @@ export function renderMassEmail(issues, { resolved = false, stillDown = 0 } = {}
 
   const rows = [
     { label: 'Állapot', html: `<span style="color:${state.accent};font-weight:700">${resolved ? state.label : 'Tömeges kiesés'}</span>` },
-    { label: resolved ? 'Helyreállt' : 'Érintett', html: names.map(esc).join('<br>') },
+    { label: 'Érintett', html: names.map(esc).join('<br>') },
     { label: 'Észlelve', html: esc(formatTime(first)) },
     resolved && last && { label: 'Helyreállt', html: esc(formatTime(last)) },
     duration && { label: 'Időtartam', html: esc(duration), strong: true },
@@ -204,13 +205,14 @@ export function renderMassEmail(issues, { resolved = false, stillDown = 0 } = {}
     eyebrow: 'Webu Státusz · tömeges kiesés',
     heading: `${n} szolgáltatás`,
     headline: state.headline,
-    incidentUrl: `${STATUS_PAGE}`,
+    incidentUrl: INCIDENTS,
+    incidentLabel: 'Incidensek a GitHubon',
   })
 
   const text = [
     lead,
     '',
-    `${resolved ? 'Helyreállt' : 'Érintett'}:`,
+    'Érintett:',
     ...names.map((name) => `- ${name}`),
     '',
     `Észlelve: ${formatTime(first)}`,

@@ -7,7 +7,8 @@
 //     is only labelled (mass-outage), not mailed.
 //   - a lone incident is mailed once it has been alone for GRACE_MINUTES, so the first site of a
 //     mass outage does not get a letter of its own. A real single outage is mailed that much later.
-//   - recoveries: 2+ closing together → one summary; a single one → its own e-mail.
+//   - recoveries: a mass outage gets one summary once all its incidents are closed (or the rest has been
+//     back for RECOVERY_WAIT_MINUTES); otherwise 2+ closing together → one summary, a single one → its own.
 // Labels on the issue are the memory: email-sent-open, email-sent-closed, mass-outage.
 //
 // Usage (notify.yml): node scripts/notify-email.mjs   — env: REPO, RESEND_API_KEY, RESEND_FROM, ALERT_EMAIL_TO
@@ -17,6 +18,7 @@ import { renderIncidentEmail, renderMassEmail } from './incident-email.mjs'
 
 export const MASS_MIN = 2
 export const GRACE_MINUTES = 8
+export const RECOVERY_WAIT_MINUTES = 60
 
 const has = (issue, label) => issue.labels.some((l) => l.name === label)
 
@@ -46,10 +48,21 @@ export function planEmails(open, closed, now = new Date()) {
   }
 
   const recovered = closed.filter((i) => has(i, 'email-sent-open') && !has(i, 'email-sent-closed'))
-  if (recovered.length >= MASS_MIN) {
-    actions.push({ mail: renderMassEmail(recovered, { resolved: true, stillDown: open.length }), numbers: recovered.map((i) => i.number), labels: ['email-sent-closed'] })
-  } else if (recovered.length === 1) {
-    actions.push({ mail: renderIncidentEmail(recovered[0]), numbers: [recovered[0].number], labels: ['email-sent-closed'] })
+  // A mass outage gets ONE recovery summary: wait until none of its incidents is open any more — or, when a
+  // straggler stays down, until the others have been back for RECOVERY_WAIT_MINUTES (then say how many are left).
+  const mass = recovered.filter((i) => has(i, 'mass-outage'))
+  if (mass.length) {
+    const stillDown = open.filter((i) => has(i, 'mass-outage')).length
+    const lastBack = Math.max(...mass.map((i) => new Date(i.closedAt).getTime()))
+    if (!stillDown || (now - lastBack) / 60000 >= RECOVERY_WAIT_MINUTES) {
+      actions.push({ mail: renderMassEmail(mass, { resolved: true, stillDown }), numbers: mass.map((i) => i.number), labels: ['email-sent-closed'] })
+    }
+  }
+  const single = recovered.filter((i) => !has(i, 'mass-outage'))
+  if (single.length >= MASS_MIN) {
+    actions.push({ mail: renderMassEmail(single, { resolved: true }), numbers: single.map((i) => i.number), labels: ['email-sent-closed'] })
+  } else if (single.length === 1) {
+    actions.push({ mail: renderIncidentEmail(single[0]), numbers: [single[0].number], labels: ['email-sent-closed'] })
   }
   return actions
 }

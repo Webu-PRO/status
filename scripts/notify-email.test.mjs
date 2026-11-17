@@ -57,7 +57,7 @@ test('nothing pending → nothing sent', () => {
 
 test('many recoveries → one summary; issues never mailed as open or already mailed as closed are skipped', () => {
   const closed = [
-    issue(1, 'Webu API', { age: 180, closedAgo: 5, labels: ['email-sent-open', 'mass-outage'] }),
+    issue(1, 'Webu API', { age: 180, closedAgo: 5, labels: ['email-sent-open'] }),
     issue(2, 'Lifted', { age: 170, closedAgo: 4, labels: ['email-sent-open'] }),
     issue(3, 'Régi', { age: 9000, closedAgo: 8000, labels: ['email-sent-open', 'email-sent-closed'] }),
     issue(4, 'Sosem küldött', { age: 100, closedAgo: 50 }),
@@ -74,11 +74,31 @@ test('a single recovery keeps its own e-mail', () => {
   assert.match(action.mail.subject, /Helyreállt: Volaria/)
 })
 
-test('partial recovery says how many are still down', () => {
-  const open = [issue(9, 'Marva', { labels: ['email-sent-open', 'mass-outage'] })]
-  const closed = [1, 2].map((n) => issue(n, `S${n}`, { age: 60, closedAgo: 1, labels: ['email-sent-open', 'mass-outage'] }))
+test('mass outage recovering one by one: no e-mail until all are back, then one summary', () => {
+  const m = ['email-sent-open', 'mass-outage']
+  const open = [issue(2, 'S2', { labels: m }), issue(3, 'S3', { labels: m })]
+  const first = [issue(1, 'S1', { age: 60, closedAgo: 1, labels: m })]
+  assert.deepEqual(planEmails(open, first, NOW), [])
+  const all = [1, 2, 3].map((n) => issue(n, `S${n}`, { age: 60, closedAgo: n, labels: m }))
+  const actions = planEmails([], all, NOW)
+  assert.equal(actions.length, 1)
+  assert.match(actions[0].mail.subject, /Helyreállt: 3 szolgáltatás/)
+  assert.deepEqual(actions[0].numbers, [1, 2, 3])
+})
+
+test('a straggler does not hold the summary back for ever: after the wait it says how many are still down', () => {
+  const m = ['email-sent-open', 'mass-outage']
+  const open = [issue(9, 'Marva', { labels: m })]
+  const closed = [1, 2].map((n) => issue(n, `S${n}`, { age: 200, closedAgo: 61, labels: m }))
   const [action] = planEmails(open, closed, NOW)
   assert.match(action.mail.text, /1 még nem elérhető/)
+  assert.deepEqual(planEmails(open, closed.map((i) => ({ ...i, closedAt: minutesAgo(10) })), NOW), [])
+})
+
+test('the recovery e-mail does not label two rows the same', () => {
+  const m = ['email-sent-open', 'mass-outage']
+  const [action] = planEmails([], [1, 2].map((n) => issue(n, `S${n}`, { age: 60, closedAgo: 1, labels: m })), NOW)
+  assert.equal(action.mail.html.split('>Helyreállt</td>').length - 1, 1)
 })
 
 test('service names are escaped in the HTML', () => {
